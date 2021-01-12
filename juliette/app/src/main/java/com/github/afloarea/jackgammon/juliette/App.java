@@ -10,6 +10,8 @@ public class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
-        LOG.info("Hello world");
+        final var board = new DefaultGameBoard();
+        board.init();
+        System.out.println(board);
     }
 }
