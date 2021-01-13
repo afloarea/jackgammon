@@ -3,14 +3,14 @@ package com.github.afloarea.jackgammon.juliette;
 import java.util.Objects;
 
 public final class GameMove {
-    private final Color color;
+    private final MoveType moveType;
     private final int from;
-    private final int distance;
+    private final int to;
 
-    public GameMove(Color color, int from, int distance) {
-        this.color = color;
+    public GameMove(MoveType moveType, int from, int to) {
+        this.moveType = moveType;
         this.from = from;
-        this.distance = distance;
+        this.to = to;
     }
 
     @Override
@@ -18,23 +18,19 @@ public final class GameMove {
         if (this == o) return true;
         if (!(o instanceof GameMove)) return false;
         GameMove gameMove = (GameMove) o;
-        return from == gameMove.from && distance == gameMove.distance && color == gameMove.color;
+        return from == gameMove.from && to == gameMove.to && moveType == gameMove.moveType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(color, from, distance);
-    }
-
-    public Color getColor() {
-        return color;
+        return Objects.hash(moveType, from, to);
     }
 
     public int getFrom() {
         return from;
     }
 
-    public int getDistance() {
-        return distance;
+    public int getTo() {
+        return to;
     }
 }

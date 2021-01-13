@@ -1,52 +1,72 @@
 package com.github.afloarea.jackgammon.juliette;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public final class BoardUtils {
+    private static final String BLACK_SYMBOL = "*";
+    private static final String WHITE_SYMBOL = "+";
+    private static final String EMPTY_SYMBOL = " ";
 
     private BoardUtils() {
     }
 
     public static String displayBoard(DefaultGameBoard gameBoard) {
-        final var empty = " ";
-        final var black = "B";
-        final var white = "W";
+        return Arrays.stream(constructBoardArray(gameBoard, 15))
+                .map(row -> Arrays.stream(row).collect(Collectors.joining(EMPTY_SYMBOL, "|", "|")))
+                .collect(Collectors.joining(System.lineSeparator()));
+    }
 
-        // first half
-        var firstHalf = new StringBuilder("-".repeat(38) + System.lineSeparator());
-        for (int index = 1; index < 15; index++) {
-            firstHalf.append("|");
-            for (int positionIndex = 1; positionIndex <= 12; positionIndex++) {
-                var position = gameBoard.blackView[positionIndex];
-                final boolean isEmpty = position.getPieceCount() < index;
-                final String symbol;
-                if (isEmpty) {
-                    symbol = empty;
-                } else {
-                    symbol = position.getPieceColor() == Color.BLACK ? black : white;
-                }
-                firstHalf.append(" ").append(symbol).append(" ");
-            }
-            firstHalf.append("|").append(System.lineSeparator());
+    private static String[][] constructBoardArray(DefaultGameBoard gameBoard, int boardSize) {
+        final String[][] board = new String[12][boardSize];
+        final String[] bucket = new String[(boardSize - 1) / 2];
+
+        Arrays.stream(board).forEach(row -> Arrays.fill(row, EMPTY_SYMBOL));
+
+        for (int index = 0; index < 12; index++) {
+            System.arraycopy(
+                    stringify(gameBoard.blackView[index + 1], bucket), 0,
+                    board[index], 0,
+                    bucket.length);
+
+            System.arraycopy(
+                    reverse(stringify(gameBoard.whiteView[index + 1], bucket)), 0,
+                    board[index], board[index].length - bucket.length,
+                    bucket.length);
         }
 
-        var secondHalf = new StringBuilder();
-        for (int index = 14; index >= 1; index--) {
-            secondHalf.append("|");
-            for (int positionIndex = 1; positionIndex <= 12; positionIndex++) {
-                var position = gameBoard.whiteView[positionIndex];
-                final boolean isEmpty = position.getPieceCount() < index;
-                final String symbol;
-                if (isEmpty) {
-                    symbol = empty;
-                } else {
-                    symbol = position.getPieceColor() == Color.BLACK ? black : white;
-                }
-                secondHalf.append(" ").append(symbol).append(" ");
-            }
-            secondHalf.append("|").append(System.lineSeparator());
-        }
-        secondHalf.append("-".repeat(38)).append(System.lineSeparator());
+        return board;
+    }
 
-        return firstHalf.append(secondHalf).toString();
+    private static String[] stringify(BoardPosition position, String[] bucket) {
+        final int pieces = position.getPieceCount();
+        final int lastSlotIndex = bucket.length - 1;
+
+        // fill colored
+        final var color = position.getPieceColor() == Color.BLACK ? BLACK_SYMBOL : WHITE_SYMBOL;
+        for (int index = 0; index < Math.min(pieces, lastSlotIndex); index++) {
+            bucket[index] = color;
+        }
+
+        if (pieces < lastSlotIndex) {
+            // fill the rest with empty
+            Arrays.fill(bucket, pieces, bucket.length, EMPTY_SYMBOL);
+            return bucket;
+        }
+
+        final int diff = pieces - lastSlotIndex;
+        bucket[lastSlotIndex] = diff == 1 ? color : String.format("%+d", diff);
+        return bucket;
+    }
+
+    private static <T> T[] reverse(T[] array) {
+        for (int index = 0; index < array.length / 2; index++) {
+            final int complement = array.length - index - 1;
+            final T temp = array[index];
+            array[index] = array[complement];
+            array[complement] = temp;
+        }
+        return array;
     }
 }
 
