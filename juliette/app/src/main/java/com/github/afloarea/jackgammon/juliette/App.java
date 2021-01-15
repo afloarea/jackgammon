@@ -3,15 +3,26 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
+import com.github.afloarea.jackgammon.juliette.board.GameBoard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.stream.Collectors;
 
 public class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
-        final var board = new DefaultGameBoard();
-        board.init();
+        final var board = GameBoard.buildNewBoard();
+
+        board.updateDiceForPlayingColor(Color.BLACK, new DiceResult(2, 1));
+        System.out.println("Possible moves: " + board.getPossibleMovesForCurrentPlayingColor());
+        board.executeMoveForPlayingColor(Color.BLACK, new GameMove(MoveType.SIMPLE, 0, 1));
         System.out.println(board);
+        System.out.println("Possible moves: " + System.lineSeparator() + board.getPossibleMovesForCurrentPlayingColor().stream().map(GameMove::toString).collect(Collectors.joining(System.lineSeparator())));
+        board.executeMoveForPlayingColor(Color.BLACK, new GameMove(MoveType.SIMPLE, 0, 2));
+        System.out.println(board);
+        System.out.println("Possible moves: " + board.getPossibleMovesForCurrentPlayingColor());
+        System.out.println("TURN ENDED: " + board.currentPlayingColorFinishedTurn());
     }
 }
