@@ -1,0 +1,21 @@
+ol li {
+    float: left;
+}
+
+li {
+    list-style-type: none;
+}
+
+button {
+    width: 80px;
+}
+
+.black {
+    background-color: black;
+    color: white;
+}
+
+.white {
+    background-color: rgb(231, 235, 39);
+    color: black;
+}
