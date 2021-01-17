@@ -9,45 +9,48 @@
 </head>
 <body>
     <h1>Welcome to Jimmy, your websocket client!</h1>
+    <h2>Player Info: <span id="player-info"></span></h2>
 
     <ul>
         <li>
             <ol>
-                <li><button id="0">0</button></li>
-                <li><button id="1">0</button></li>
-                <li><button id="2">0</button></li>
-                <li><button id="3">0</button></li>
-                <li><button id="4">0</button></li>
-                <li><button id="5">0</button></li>
-                <li><button id="6">0</button></li>
-                <li><button id="7">0</button></li>
-                <li><button id="8">0</button></li>
-                <li><button id="9">0</button></li>
-                <li><button id="10">0</button></li>
-                <li><button id="11">0</button></li>
+                <li><button class="table-button" id="0">0</button></li>
+                <li><button class="table-button" id="1">0</button></li>
+                <li><button class="table-button" id="2">0</button></li>
+                <li><button class="table-button" id="3">0</button></li>
+                <li><button class="table-button" id="4">0</button></li>
+                <li><button class="table-button" id="5">0</button></li>
+                <li><button class="table-button" id="6">0</button></li>
+                <li><button class="table-button" id="7">0</button></li>
+                <li><button class="table-button" id="8">0</button></li>
+                <li><button class="table-button" id="9">0</button></li>
+                <li><button class="table-button" id="10">0</button></li>
+                <li><button class="table-button" id="11">0</button></li>
             </ol>
         </li>
         <li>
             <ol>
-                <li><button id="23">0</button></li>
-                <li><button id="22">0</button></li>
-                <li><button id="21">0</button></li>
-                <li><button id="20">0</button></li>
-                <li><button id="19">0</button></li>
-                <li><button id="18">0</button></li>
-                <li><button id="17">0</button></li>
-                <li><button id="16">0</button></li>
-                <li><button id="15">0</button></li>
-                <li><button id="14">0</button></li>
-                <li><button id="13">0</button></li>
-                <li><button id="12">0</button></li>
+                <li><button class="table-button" id="23">0</button></li>
+                <li><button class="table-button" id="22">0</button></li>
+                <li><button class="table-button" id="21">0</button></li>
+                <li><button class="table-button" id="20">0</button></li>
+                <li><button class="table-button" id="19">0</button></li>
+                <li><button class="table-button" id="18">0</button></li>
+                <li><button class="table-button" id="17">0</button></li>
+                <li><button class="table-button" id="16">0</button></li>
+                <li><button class="table-button" id="15">0</button></li>
+                <li><button class="table-button" id="14">0</button></li>
+                <li><button class="table-button" id="13">0</button></li>
+                <li><button class="table-button" id="12">0</button></li>
             </ol>
         </li>
     </ul>
 
-    <p>Suspended white: <span id="white-suspended">3</span></p>
-    <p>Suspended black: <span id="black-suspended">4</span></p>
+    <p>Suspended white: <span id="white-suspended">0</span></p>
+    <p>Suspended black: <span id="black-suspended">0</span></p>
     <p>Collected white: <span id="white-collected">0</span></p>
     <p>Collected black: <span id="black-collected">0</span></p>
+    <button id="roll">Roll dice</button>
+    <p>Last Roll: <span id="roll-result"></span></p>
 </body>
 </html>
