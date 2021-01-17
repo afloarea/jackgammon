@@ -3,26 +3,87 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.board.GameBoard;
+import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.message.client.PlayerJoinMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.InitGameMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.PromptRollMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.ServerToClientEvent;
+import com.github.afloarea.jackgammon.juliette.verticles.MatchWatcherVerticle;
+import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.MessageCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 public class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
-        final var board = GameBoard.buildNewBoard();
+        final var vertx = Vertx.vertx();
 
-        board.updateDiceForPlayingColor(Color.BLACK, new DiceResult(2, 1));
-        System.out.println("Possible moves: " + board.getPossibleMovesForCurrentPlayingColor());
-        board.executeMoveForPlayingColor(Color.BLACK, new GameMove(MoveType.SIMPLE, 0, 1));
-        System.out.println(board);
-        System.out.println("Possible moves: " + System.lineSeparator() + board.getPossibleMovesForCurrentPlayingColor().stream().map(GameMove::toString).collect(Collectors.joining(System.lineSeparator())));
-        board.executeMoveForPlayingColor(Color.BLACK, new GameMove(MoveType.SIMPLE, 0, 2));
-        System.out.println(board);
-        System.out.println("Possible moves: " + board.getPossibleMovesForCurrentPlayingColor());
-        System.out.println("TURN ENDED: " + board.currentPlayingColorFinishedTurn());
+        vertx.eventBus().registerDefaultCodec(PlayerJoinMessage.class, new DefaultClientCodec<>());
+        vertx.eventBus().registerDefaultCodec(InitGameMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(PromptRollMessage.class, new DefaultServerCodec<>());
+
+        vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
+                vertx.deployVerticle(WebSocketVerticle.class.getName()));
+
+    }
+
+    private static final class DefaultClientCodec<T extends ClientToServerEvent> implements MessageCodec<T, T> {
+        @Override
+        public void encodeToWire(Buffer buffer, ClientToServerEvent clientToServerEvent) {
+
+        }
+
+        @Override
+        public T decodeFromWire(int pos, Buffer buffer) {
+            return null;
+        }
+
+        @Override
+        public T transform(T clientToServerEvent) {
+            return clientToServerEvent;
+        }
+
+        @Override
+        public String name() {
+            return "default-client-to-server-codec";
+        }
+
+        @Override
+        public byte systemCodecID() {
+            return -1;
+        }
+    }
+
+    private static final class DefaultServerCodec<T extends ServerToClientEvent> implements MessageCodec<T, T> {
+        @Override
+        public void encodeToWire(Buffer buffer, ServerToClientEvent clientToServerEvent) {
+
+        }
+
+        @Override
+        public T decodeFromWire(int pos, Buffer buffer) {
+            return null;
+        }
+
+        @Override
+        public T transform(T clientToServerEvent) {
+            return clientToServerEvent;
+        }
+
+        @Override
+        public String name() {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public byte systemCodecID() {
+            return -1;
+        }
     }
 }

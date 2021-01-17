@@ -1,19 +1,23 @@
 package com.github.afloarea.jackgammon.juliette;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Random;
+
 public enum Color {
-    BLACK("B") {
+    @JsonProperty("black") BLACK("B") {
         @Override
         public Color complement() {
             return Color.WHITE;
         }
     },
-    WHITE("W") {
+    @JsonProperty("white") WHITE("W") {
         @Override
         public Color complement() {
             return Color.BLACK;
         }
     },
-    NONE(" ") {
+    @JsonProperty("none") NONE(" ") {
         @Override
         public Color complement() {
             return Color.NONE;
@@ -35,5 +39,13 @@ public enum Color {
     @Override
     public String toString() {
         return name().toLowerCase();
+    }
+
+    public static Color getRandom() {
+        return Wrapper.RANDOM.nextBoolean() ? Color.BLACK : Color.WHITE;
+    }
+
+    private static final class Wrapper {
+        private static final Random RANDOM = new Random();
     }
 }

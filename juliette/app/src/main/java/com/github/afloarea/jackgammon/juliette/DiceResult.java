@@ -1,10 +1,13 @@
 package com.github.afloarea.jackgammon.juliette;
 
 import java.util.Objects;
+import java.util.Random;
 import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
 public class DiceResult {
+    private static final Random RANDOM = new Random();
+
     private final int dice1;
     private final int dice2;
 
@@ -23,6 +26,10 @@ public class DiceResult {
 
     public IntStream stream() {
         return isSimple() ? IntStream.of(dice1, dice2) : IntStream.generate(() -> dice1).limit(4);
+    }
+
+    public static DiceResult generate() {
+        return new DiceResult(1 + RANDOM.nextInt(6), 1 + RANDOM.nextInt(6));
     }
 
     @Override

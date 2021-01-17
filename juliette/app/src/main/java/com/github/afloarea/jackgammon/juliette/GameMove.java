@@ -1,5 +1,8 @@
 package com.github.afloarea.jackgammon.juliette;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -8,7 +11,9 @@ public final class GameMove {
     private final int from;
     private final int to;
 
-    public GameMove(MoveType type, int from, int to) {
+    public GameMove(@JsonProperty("type") MoveType type,
+                    @JsonProperty("source") int from,
+                    @JsonProperty("target") int to) {
         this.type = type;
         this.from = from;
         this.to = to;
@@ -39,10 +44,12 @@ public final class GameMove {
         return Objects.hash(type, from, to);
     }
 
+    @JsonGetter("source")
     public int getFrom() {
         return from;
     }
 
+    @JsonGetter("target")
     public int getTo() {
         return to;
     }
