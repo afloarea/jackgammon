@@ -97,6 +97,9 @@ function updateRoll(msg) {
   document.getElementById("roll-result").innerText = `${msg.dice1} ${msg.dice2} ${msg.playingColor}`;
 }
 
+//--------------------------------------
+// handle update notification
+
 function updateMove(msg) {
   const movingColor = msg.playingColor;
   const othetColor = movingColor === 'black' ? 'white' : 'black';
@@ -156,9 +159,90 @@ function updateMove(msg) {
 
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
+// -------------------------------------------
+
+window.addEventListener('DOMContentLoaded', (event) => { // HTML LOADED
   // roll button
   document.getElementById("roll").addEventListener('click', () => sendRoll());
 
-  // moves
+  
+
+
+
+//---------------------------------------------
+// button actions
+let collectAction = false;
+let enterAction = false;
+
+document.getElementById('collect').addEventListener('click', () => collectAction = !collectAction);
+document.getElementById('enter').addEventListener('click', () => enterAction = !enterAction);
+
+let previusButton = null;
+
+Array.from(document.getElementsByClassName('table-button')).forEach(button => button.addEventListener('click', () => {
+  console.log('clicked: ' + button.id)
+
+  if (collectAction) {
+    sendSelectedMove(button.id, -1, "collect");
+    collectAction = false;
+    return;
+  }
+
+  if (enterAction) {
+    sendSelectedMove(-1, button.id, "enter");
+    enterAction = false;
+    return;
+  }
+
+  if(previusButton === null) {
+    previusButton = button;
+    return;
+  }
+
+  sendSelectedMove(previusButton.id, button.id, "simple");
+  previusButton = null;
+
+}));
+
+function sendSelectedMove(from, to, type) {
+  const msg = {
+    type: "select-move",
+    playingColor: playingColor,
+    selectedMove: {
+      type,
+      source: parseInt(from),
+      target: parseInt(to)
+    }
+  };
+
+  console.log("Sending move: " + JSON.stringify(msg));
+
+  socket.send(JSON.stringify(msg));
+}
+
+
+
+//---------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });
+
+

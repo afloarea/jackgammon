@@ -1,8 +1,5 @@
 ol li {
     float: left;
-}
-
-li {
     list-style-type: none;
 }
 
@@ -18,4 +15,12 @@ button {
 .white {
     background-color: rgb(231, 235, 39);
     color: black;
+}
+
+.row {
+    display: flex;
+}
+
+.column {
+    flex: 50%;
 }
