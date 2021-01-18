@@ -6,10 +6,7 @@ import com.github.afloarea.jackgammon.juliette.board.GameBoard;
 import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.InitGameMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.NotifyRollMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.PromptMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.PromptRollMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,9 +64,19 @@ public class DefaultGame implements Game {
         final var playingColor = notifyMove.getPlayingColor();
         board.executeMoveForPlayingColor(playingColor, notifyMove.getMove());
 
+        final List<GameToPlayerMessage> playerMessages;
+        final List<GameToPlayerMessage> opponentMessages;
+        if (board.isGameComplete()) {
+            playerMessages = List.of(notifyMove, new NotifyGameEndedMessage(board.getWinningColor()));
+            opponentMessages = playerMessages;
+        } else {
+            playerMessages = generateCurrentPlayerMessages(notifyMove);
+            opponentMessages = generateOpponentMessages(notifyMove);
+        }
+
         return GameToPlayersMessage.of(
-                getPlayerId(playingColor), generateCurrentPlayerMessages(notifyMove),
-                getPlayerId(playingColor.complement()), generateOpponentMessages(notifyMove));
+                getPlayerId(playingColor), playerMessages,
+                getPlayerId(playingColor.complement()), opponentMessages);
     }
 
     private List<GameToPlayerMessage> generateOpponentMessages(GameToPlayerMessage notification) {

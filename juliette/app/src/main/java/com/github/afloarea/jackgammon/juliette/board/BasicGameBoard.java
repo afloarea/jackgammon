@@ -83,6 +83,10 @@ public final class BasicGameBoard implements GameBoard {
 
     @Override
     public void executeMoveForPlayingColor(Color playingColor, GameMove move) {
+        if (isGameComplete()) {
+            throw new IllegalGameActionException("Game is complete. No more moves allowed");
+        }
+
         if (playingColor != currentPlayingColor || playingColor == Color.NONE) {
             throw new IllegalGameActionException("Incorrect playing color provided");
         }
@@ -155,6 +159,9 @@ public final class BasicGameBoard implements GameBoard {
     }
 
     private void performRollValidation(Color playingColor, DiceResult dice) {
+        if (isGameComplete()) {
+            throw new IllegalGameActionException("Unable to roll dice. Game is finished");
+        }
         if (playingColor == Color.NONE) {
             throw new IllegalGameActionException("None color cannot update the dice");
         }

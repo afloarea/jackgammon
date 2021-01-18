@@ -20,6 +20,9 @@ socket.onmessage = function(event) {
       case 'notify-move':
         updateMove(msg);
         break;
+      case 'notify-end':
+        displayGameOver(msg);
+        break;
       default:
         break;
     }
@@ -76,6 +79,10 @@ function join() {
   document.getElementById("player-info").innerText = selectedPlayerName;
 
   sendJoinMessage(selectedPlayerName, true);
+}
+
+function displayGameOver(msg) {
+  alert(`You ${playingColor === msg.winner ? 'won' : 'lost'} the game!`);
 }
 
 function selectMove(move) {
