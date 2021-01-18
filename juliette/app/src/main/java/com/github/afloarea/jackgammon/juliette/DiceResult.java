@@ -29,7 +29,9 @@ public class DiceResult {
     }
 
     public static DiceResult generate() {
-        return new DiceResult(1 + RANDOM.nextInt(6), 1 + RANDOM.nextInt(6));
+        final int first = 1 + RANDOM.nextInt(6);
+        final int second = 1 + RANDOM.nextInt(6);
+        return new DiceResult(Math.max(first, second), Math.min(first, second));
     }
 
     @Override

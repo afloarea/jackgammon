@@ -3,16 +3,21 @@ package com.github.afloarea.jackgammon.juliette.manager;
 import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.board.GameBoard;
-import com.github.afloarea.jackgammon.juliette.message.MoveMessage;
+import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
+import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.InitGameMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.NotifyRollMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.PromptMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.PromptRollMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class DefaultGame implements Game {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultGame.class);
+
     private final Map<Color, String> playersByPlayingColor = new EnumMap<>(Color.class);
     private final GameBoard board;
 
@@ -28,8 +33,8 @@ public class DefaultGame implements Game {
         if (message instanceof PlayerRollMessage) {
             return handleRoll((PlayerRollMessage) message);
         }
-        if (message instanceof MoveMessage) {
-            return handleMove((MoveMessage) message);
+        if (message instanceof SelectMoveMessage) {
+            return handleMove((SelectMoveMessage) message);
         }
         throw new UnsupportedOperationException("Unable to handle message of type " + message.getClass().getSimpleName());
     }
@@ -48,7 +53,7 @@ public class DefaultGame implements Game {
     private GameToPlayersMessage handleRoll(PlayerRollMessage rollMessage) {
         final var playingColor = rollMessage.getPlayingColor();
         final var diceResult = DiceResult.generate();
-        final var notification = new NotifyRollMessage(playingColor, DiceResult.generate());
+        final var notification = new NotifyRollMessage(playingColor, diceResult);
 
         board.updateDiceForPlayingColor(playingColor, diceResult);
 
@@ -57,13 +62,14 @@ public class DefaultGame implements Game {
                 getPlayerId(playingColor.complement()), generateOpponentMessages(notification));
     }
 
-    private GameToPlayersMessage handleMove(MoveMessage moveMessage) {
-        final var playingColor = moveMessage.getPlayingColor();
-        board.executeMoveForPlayingColor(playingColor, moveMessage.getSelectedMove());
+    private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
+        final var notifyMove = NotifyMoveMessage.from(selectMoveMessage);
+        final var playingColor = notifyMove.getPlayingColor();
+        board.executeMoveForPlayingColor(playingColor, notifyMove.getMove());
 
         return GameToPlayersMessage.of(
-                getPlayerId(playingColor), generateCurrentPlayerMessages(moveMessage),
-                getPlayerId(playingColor.complement()), generateOpponentMessages(moveMessage));
+                getPlayerId(playingColor), generateCurrentPlayerMessages(notifyMove),
+                getPlayerId(playingColor.complement()), generateOpponentMessages(notifyMove));
     }
 
     private List<GameToPlayerMessage> generateOpponentMessages(GameToPlayerMessage notification) {

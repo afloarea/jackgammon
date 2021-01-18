@@ -126,4 +126,19 @@ class BasicGameBoardTest {
         Assertions.assertEquals(Set.of(GameMove.collect(20)), board.getPossibleMovesForCurrentPlayingColor());
     }
 
+    @Test void testMoveAndCollect() {
+        final var board = BoardFactory.build(
+                new int[] {2, 2, 0, 1, 1, 7,    0, 0, 0, 0, 0, 0},
+                new int[] {0, 0, -1, -5, -2, -6,  0, -1, 0, 0, 0, 0},
+                0, 0, 0, 2
+        );
+        final var diceResult = new DiceResult(3, 5);
+
+        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(16, 19));
+        board.executeMoveForPlayingColor(Color.BLACK, GameMove.collect(19));
+
+        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+    }
+
 }

@@ -3,10 +3,11 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.message.MoveMessage;
+import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerJoinMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
+import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.*;
 import com.github.afloarea.jackgammon.juliette.verticles.MatchWatcherVerticle;
 import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
@@ -26,11 +27,12 @@ public class App {
 
         vertx.eventBus().registerDefaultCodec(PlayerJoinMessage.class, new DefaultClientCodec<>());
         vertx.eventBus().registerDefaultCodec(PlayerRollMessage.class, new DefaultClientCodec<>());
+        vertx.eventBus().registerDefaultCodec(SelectMoveMessage.class, new DefaultClientCodec<>());
         vertx.eventBus().registerDefaultCodec(InitGameMessage.class, new DefaultServerCodec<>());
         vertx.eventBus().registerDefaultCodec(PromptRollMessage.class, new DefaultServerCodec<>());
         vertx.eventBus().registerDefaultCodec(NotifyRollMessage.class, new DefaultServerCodec<>());
         vertx.eventBus().registerDefaultCodec(PromptMoveMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(MoveMessage.class, new DefaultMoveCodec());
+        vertx.eventBus().registerDefaultCodec(NotifyMoveMessage.class, new DefaultServerCodec<>());
 
         vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
                 vertx.deployVerticle(WebSocketVerticle.class.getName()));
@@ -77,33 +79,6 @@ public class App {
 
         @Override
         public T transform(T clientToServerEvent) {
-            return clientToServerEvent;
-        }
-
-        @Override
-        public String name() {
-            return UUID.randomUUID().toString();
-        }
-
-        @Override
-        public byte systemCodecID() {
-            return -1;
-        }
-    }
-
-    private static final class DefaultMoveCodec implements MessageCodec<MoveMessage, MoveMessage> {
-        @Override
-        public void encodeToWire(Buffer buffer, MoveMessage clientToServerEvent) {
-
-        }
-
-        @Override
-        public MoveMessage decodeFromWire(int pos, Buffer buffer) {
-            return null;
-        }
-
-        @Override
-        public MoveMessage transform(MoveMessage clientToServerEvent) {
             return clientToServerEvent;
         }
 
