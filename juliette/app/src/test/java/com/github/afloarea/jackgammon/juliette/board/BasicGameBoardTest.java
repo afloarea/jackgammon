@@ -139,6 +139,7 @@ class BasicGameBoardTest {
         board.executeMoveForPlayingColor(Color.BLACK, GameMove.collect(19));
 
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().isEmpty());
     }
 
 }

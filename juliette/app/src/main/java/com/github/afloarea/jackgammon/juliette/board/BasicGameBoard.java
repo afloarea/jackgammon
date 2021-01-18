@@ -1,6 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
@@ -99,6 +101,7 @@ public final class BasicGameBoard implements GameBoard {
             blackViewBoardColumns[move.getFrom()].removePiece();
             collectPiece();
             remainingDiceValues.remove((Integer) usedDiceValue);
+            updatePossibleMoves();
             return;
         }
 
