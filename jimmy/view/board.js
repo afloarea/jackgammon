@@ -43,16 +43,18 @@ class Column {
     maxPieceHeight;
 
 
-    constructor(base, direction, x, pieceCount=0, pieceColor=null, maxPieceHeight=PROPS.COLUMN_MAX_PIECE_HEIGHT) {
+    constructor(base, direction, x, maxPieceHeight=PROPS.COLUMN_MAX_PIECE_HEIGHT) {
         this.base = base;
         this.direction = direction;
         this.x = x;
         this.maxPieceHeight = maxPieceHeight;
         this.pieces = [];
-        const pieceDistance = this._calculatePieceDistance(maxPieceHeight, pieceCount);
+    }
 
+    init(pieceCount, pieceColor) {
+        const pieceDistance = this._calculatePieceDistance(this.maxPieceHeight, pieceCount);
         for(let index = 0; index < pieceCount; index++) {
-            this.pieces.push(new Piece(this.x, this.base + index * pieceDistance * direction, pieceColor));
+            this.pieces.push(new Piece(this.x, this.base + index * pieceDistance * this.direction, pieceColor));
         }
     }
 
@@ -110,44 +112,52 @@ class Board {
     columnsById = new Map();
     movingPieces = [];
 
-    initColumns() {
+    constructor() {
         let index = 0;
-        this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 2, PROPS.BLACK));
-        this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('D', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('E', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('F', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 5, PROPS.WHITE));
+        this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('D', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('E', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('F', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
 
-        this.columnsById.set('SB', new Column(PROPS.UPPER_BASE + 2 * 2 * PROPS.PIECE_RADIUS, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 0, null, PROPS.maxHeight / 2));
+        this.columnsById.set('SB', new Column(PROPS.UPPER_BASE + 2 * PROPS.PIECE_DIAMETER, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
 
-        this.columnsById.set('G', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('H', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 3, PROPS.WHITE));
-        this.columnsById.set('I', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('J', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('K', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('L', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 5, PROPS.BLACK));
+        this.columnsById.set('G', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('H', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('I', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('J', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('K', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('L', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
 
 
         index = 0;
-        this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 2, PROPS.WHITE));
-        this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('P', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('Q', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('R', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 5, PROPS.BLACK));
+        this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('P', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('Q', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('R', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
 
-        this.columnsById.set('SW', new Column(PROPS.LOWER_BASE - 2 * 2 * PROPS.PIECE_RADIUS, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 0, null, PROPS.maxHeight / 2));
+        this.columnsById.set('SW', new Column(PROPS.LOWER_BASE - 2 * PROPS.PIECE_DIAMETER, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
 
-        this.columnsById.set('S', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('T', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 3, PROPS.BLACK));
-        this.columnsById.set('U', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
-        this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 5, PROPS.WHITE));
+        this.columnsById.set('S', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('T', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('U', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+    }
 
-        //TODO: display lower pieces first, upper pieces after
-        this.allPieces = Array.from(this.columnsById.values()).reduce((acc, column) => acc.concat(column.pieces), []);
+    initColumns() {
+        this.columnsById.get('A').init(2, PROPS.BLACK);
+        this.columnsById.get('F').init(5, PROPS.WHITE);
+        this.columnsById.get('H').init(3, PROPS.BLACK);
+        this.columnsById.get('L').init(5, PROPS.WHITE);
+        this.columnsById.get('M').init(2, PROPS.BLACK);
+        this.columnsById.get('R').init(5, PROPS.WHITE);
+        this.columnsById.get('T').init(3, PROPS.BLACK);
+        this.columnsById.get('X').init(5, PROPS.WHITE);
     }
 
 
