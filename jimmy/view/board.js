@@ -4,9 +4,10 @@ PROPS.context = PROPS.canvas.getContext('2d');
 PROPS.WIDTH = PROPS.canvas.width;
 PROPS.HEIGHT = PROPS.canvas.height;
 PROPS.PIECE_RADIUS = PROPS.WIDTH / (15 * 2);
+PROPS.PIECE_DIAMETER = 2 * PROPS.PIECE_RADIUS;
 PROPS.UPPER_BASE = PROPS.PIECE_RADIUS;
 PROPS.LOWER_BASE = PROPS.HEIGHT - PROPS.PIECE_RADIUS;
-PROPS.COLUMN_MAX_HEIGHT = PROPS.HEIGHT / 3;
+PROPS.COLUMN_MAX_PIECE_HEIGHT = 7;
 PROPS.PIx2 = 2 * Math.PI;
 PROPS.BLACK = 'black';
 PROPS.WHITE = 'yellow';
@@ -39,19 +40,28 @@ class Column {
     direction;
     x;
     pieces;
-    maxHeight;
+    maxPieceHeight;
 
 
-    constructor(base, direction, x, pieceCount=0, pieceColor=null, maxHeight=PROPS.maxHeight) {
+    constructor(base, direction, x, pieceCount=0, pieceColor=null, maxPieceHeight=PROPS.COLUMN_MAX_PIECE_HEIGHT) {
         this.base = base;
         this.direction = direction;
         this.x = x;
-        this.maxHeight = maxHeight;
+        this.maxPieceHeight = maxPieceHeight;
         this.pieces = [];
+        const pieceDistance = this._calculatePieceDistance(maxPieceHeight, pieceCount);
 
         for(let index = 0; index < pieceCount; index++) {
-            this.pieces.push(new Piece(this.x, this.base + index * 2 * PROPS.PIECE_RADIUS * direction, pieceColor));
+            this.pieces.push(new Piece(this.x, this.base + index * pieceDistance * direction, pieceColor));
         }
+    }
+
+    _calculatePieceDistance(maxPieces, actualPieces) {
+        if (maxPieces >= actualPieces) {
+            return PROPS.PIECE_DIAMETER;
+        }
+
+        return (maxPieces - 1) / (actualPieces - 1) * PROPS.PIECE_DIAMETER;
     }
 
     removeTopPiece() {
@@ -59,17 +69,46 @@ class Column {
     }
 
     getNewPiecePosition() {
-        return { x: this.x, y: this.base + this.direction * 2 * PROPS.PIECE_RADIUS * this.pieces.length };
+        const pieceDistance = this._calculatePieceDistance(this.maxPieceHeight, this.pieces.length + 1);
+        return { x: this.x, y: this.base + this.direction * pieceDistance * this.pieces.length };
     }
 
     addTopPiece(piece) {
         this.pieces.push(piece);
     }
+
+    generateShrinkAnimation() {
+        if (this.pieces.length + 1 < this.maxPieceHeight) {
+            return null;
+        } 
+
+        const newDistance = this._calculatePieceDistance(this.maxPieceHeight, this.pieces.length + 1);
+        return this._generateAnimation(newDistance);
+    }
+
+    generateExpandAnimation() {
+        if (this.pieces.length < this.maxPieceHeight) {
+            return null;
+        }
+
+        const newDistance = this._calculatePieceDistance(this.maxPieceHeight, this.pieces.length);
+        return this._generateAnimation(newDistance);
+    }
+
+    _generateAnimation(distance) {
+        const self = this;
+        return {
+            targets: self.pieces,
+            y: function(_, index) {
+                return self.base + self.direction * distance * index;
+            }
+        };
+    }
 }
 
 class Board {
     columnsById = new Map();
-    allPieces;
+    movingPieces = [];
 
     initColumns() {
         let index = 0;
@@ -107,35 +146,64 @@ class Board {
         this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS));
         this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * 2 * PROPS.PIECE_RADIUS, 5, PROPS.WHITE));
 
+        //TODO: display lower pieces first, upper pieces after
         this.allPieces = Array.from(this.columnsById.values()).reduce((acc, column) => acc.concat(column.pieces), []);
     }
 
 
     draw() {
         PROPS.context.clearRect(0, 0, PROPS.WIDTH, PROPS.HEIGHT);
-        this.allPieces.forEach(piece => piece.draw()); 
+        for (let column of this.columnsById.values()) {
+            column.pieces.forEach(piece => piece.draw());
+        }
+        this.movingPieces.forEach(piece => piece.draw());
     }
 
-    displayMove(move) {
-        //TODO: calling twice before animation is complete
-        const sourceColumn = this.columnsById.get(move.source);
-        const targetColumn = this.columnsById.get(move.target);
+    previousAnimation = Promise.resolve();
 
-        const movedPiece = sourceColumn.removeTopPiece();
-        const newPosition = targetColumn.getNewPiecePosition();
-        const self = this;
-        anime({
-            targets: movedPiece,
-            x: newPosition.x,
-            y: newPosition.y,
-            duration: 1_200,
-            easing: 'easeOutCubic',
-            update() {
-                self.draw();
-            },
-            complete() {
-                console.log("done");
-                targetColumn.addTopPiece(movedPiece);
+    displayMove(move) {
+        this.previousAnimation = this.previousAnimation.then(() => this.animateMove(move));
+    }
+
+    async animateMove(move) {
+        return new Promise(resolve => {
+            const sourceColumn = this.columnsById.get(move.source);
+            const targetColumn = this.columnsById.get(move.target);
+
+            const movedPiece = sourceColumn.removeTopPiece();
+            this.movingPieces.push(movedPiece);
+            const newPosition = targetColumn.getNewPiecePosition();
+            const self = this;
+
+            const timeline = anime.timeline({
+                duration: 1_200,
+                easing: 'easeOutCubic',
+                update() {
+                    self.draw();
+                },
+                complete() {
+                    console.log("done");
+                    targetColumn.addTopPiece(movedPiece);
+                    self.movingPieces.pop();
+                    resolve();
+                }
+            });
+
+            timeline.add({
+                targets: movedPiece,
+                x: newPosition.x,
+                y: newPosition.y
+            });
+
+            const expandAnimation = sourceColumn.generateExpandAnimation();
+            const shrinkAnimation = targetColumn.generateShrinkAnimation();
+
+            if (expandAnimation != null) {
+                timeline.add(expandAnimation, 0);
+            }
+            
+            if (shrinkAnimation != null) {
+                timeline.add(shrinkAnimation, 0);
             }
         });
     }
