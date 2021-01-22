@@ -1,8 +1,11 @@
 const PROPS = {};
 PROPS.canvas = document.getElementById('game-canvas');
 PROPS.context = PROPS.canvas.getContext('2d');
+PROPS.canvasBounding = PROPS.canvas.getBoundingClientRect();
 PROPS.WIDTH = PROPS.canvas.width;
 PROPS.HEIGHT = PROPS.canvas.height;
+PROPS.CANVAS_X = PROPS.canvasBounding.left;
+PROPS.CANVAS_Y = PROPS.canvasBounding.top;
 PROPS.PIECE_RADIUS = PROPS.WIDTH / (15 * 2);
 PROPS.PIECE_DIAMETER = 2 * PROPS.PIECE_RADIUS;
 PROPS.UPPER_BASE = PROPS.PIECE_RADIUS;
@@ -13,6 +16,22 @@ PROPS.BLACK = 'black';
 PROPS.WHITE = 'yellow';
 
 PROPS.context.strokeStyle='purple'
+
+
+function getMousePos(evt) {
+    // TODO: check rect.left and rect.top are updated when the canvas is repositioned
+    let rect = PROPS.canvasBounding;
+ 
+    let X = (evt.clientX - rect.left) / PROPS.canvas.clientWidth * PROPS.canvas.width;
+    let Y = (evt.clientY - rect.top) / PROPS.canvas.clientHeight * PROPS.canvas.height;
+    // X = Math.ceil(X);
+    // Y = Math.ceil(Y);
+ 
+    return {
+        x: X,
+        y: Y
+    };
+}
 
 
 class Piece {
@@ -106,6 +125,29 @@ class Column {
             }
         };
     }
+
+    containsCoordinates(mousePos) {
+        //console.log(`x: ${x}, y: ${y}`);
+
+        if (this.x + PROPS.PIECE_RADIUS < mousePos.x || this.x - PROPS.PIECE_RADIUS > mousePos.x) {
+            return false;
+        }
+        if (this.direction > 0) {
+            return this.base - PROPS.PIECE_RADIUS < mousePos.y && this.base + this.maxPieceHeight * PROPS.PIECE_DIAMETER + PROPS.PIECE_RADIUS > mousePos.y;
+        } else {
+            return this.base + PROPS.PIECE_RADIUS > mousePos.y && this.base - this.maxPieceHeight * PROPS.PIECE_DIAMETER - PROPS.PIECE_RADIUS < mousePos.y;
+        }
+    }
+
+    //TODO: Remove this at some point
+    draw() {
+        PROPS.context.beginPath();
+        PROPS.context.moveTo(this.x - PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
+        PROPS.context.lineTo(this.x, this.base + this.direction * this.maxPieceHeight * PROPS.PIECE_DIAMETER);
+        PROPS.context.lineTo(this.x + PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
+        PROPS.context.closePath();
+        PROPS.context.stroke();
+    }
 }
 
 class Board {
@@ -147,15 +189,24 @@ class Board {
         this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+
+        PROPS.canvas.addEventListener('click', (ev) => {
+            for (let columnEntry of this.columnsById.entries()) {
+                if (columnEntry[1].containsCoordinates(getMousePos(ev))) {
+                    console.log("selected column " + columnEntry[0]);
+                    return;
+                }
+            }
+        });
     }
 
     initColumns() {
         this.columnsById.get('A').init(2, PROPS.BLACK);
         this.columnsById.get('F').init(5, PROPS.WHITE);
-        this.columnsById.get('H').init(3, PROPS.BLACK);
-        this.columnsById.get('L').init(5, PROPS.WHITE);
-        this.columnsById.get('M').init(2, PROPS.BLACK);
-        this.columnsById.get('R').init(5, PROPS.WHITE);
+        this.columnsById.get('H').init(3, PROPS.WHITE);
+        this.columnsById.get('L').init(5, PROPS.BLACK);
+        this.columnsById.get('M').init(2, PROPS.WHITE);
+        this.columnsById.get('R').init(5, PROPS.BLACK);
         this.columnsById.get('T').init(3, PROPS.BLACK);
         this.columnsById.get('X').init(5, PROPS.WHITE);
     }
@@ -164,6 +215,7 @@ class Board {
     draw() {
         PROPS.context.clearRect(0, 0, PROPS.WIDTH, PROPS.HEIGHT);
         for (let column of this.columnsById.values()) {
+            column.draw();
             column.pieces.forEach(piece => piece.draw());
         }
         this.movingPieces.forEach(piece => piece.draw());
