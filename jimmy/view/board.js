@@ -14,6 +14,8 @@ PROPS.COLUMN_MAX_PIECE_HEIGHT = 7;
 PROPS.PIx2 = 2 * Math.PI;
 PROPS.BLACK = 'black';
 PROPS.WHITE = 'yellow';
+PROPS.HIGHLIGHT = 'purple';
+PROPS.UNHIGHLIGHT = 'white';
 
 PROPS.context.strokeStyle='purple'
 
@@ -148,6 +150,21 @@ class Column {
         PROPS.context.closePath();
         PROPS.context.stroke();
     }
+
+    //TODO: Probably remove this at some point
+    highlight(enabled) {
+        PROPS.context.fillStyle = enabled ? PROPS.HIGHLIGHT : PROPS.UNHIGHLIGHT;
+
+        PROPS.context.beginPath();
+        PROPS.context.moveTo(this.x - PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
+        PROPS.context.lineTo(this.x, this.base + this.direction * this.maxPieceHeight * PROPS.PIECE_DIAMETER);
+        PROPS.context.lineTo(this.x + PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
+        PROPS.context.closePath();
+        PROPS.context.fill();
+
+        this.pieces.forEach(piece => piece.draw());
+    }
+
 }
 
 class Board {
@@ -156,6 +173,7 @@ class Board {
 
     constructor() {
         let index = 0;
+        this.columnsById.set('CW', new Column(PROPS.UPPER_BASE + 2 * PROPS.PIECE_DIAMETER, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
         this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
@@ -174,6 +192,7 @@ class Board {
 
 
         index = 0;
+        this.columnsById.set('CB', new Column(PROPS.LOWER_BASE - 2 * PROPS.PIECE_DIAMETER, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
         this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
         this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
@@ -191,12 +210,18 @@ class Board {
         this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
 
         PROPS.canvas.addEventListener('click', (ev) => {
+            if (this.columnClickListener === null) {
+                return;
+            }
+
             for (let columnEntry of this.columnsById.entries()) {
                 if (columnEntry[1].containsCoordinates(getMousePos(ev))) {
                     console.log("selected column " + columnEntry[0]);
+                    this.columnClickListener(columnEntry[0]);
                     return;
                 }
             }
+            this.columnClickListener(null);
         });
     }
 
@@ -269,6 +294,45 @@ class Board {
             }
         });
     }
+
+
+    async getPlayerMove(possibleMoves) {
+        const sourceColumns = Object.keys(possibleMoves);
+        if (sourceColumns.length === 0) {
+            return;
+        }
+
+        const sourceColumn = await this.getColumnInput(sourceColumns);
+        if (sourceColumn === null) {
+            return this.getPlayerMove(possibleMoves);
+        }
+        const targetColumn = await this.getColumnInput(possibleMoves[sourceColumn]);
+        if (targetColumn === null) {
+            return this.getPlayerMove(possibleMoves);
+        }
+
+        return { source: sourceColumn, target: targetColumn };
+    }
+
+    columnClickListener = null;
+
+    async getColumnInput(possibleColumns) {
+        return new Promise((resolve) => {
+
+            // highlight
+            possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlight(true));
+            console.log('highlight columns: ' + possibleColumns);
+            this.columnClickListener = function(selectedColumn) {
+                // remove highlight
+                possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlight(false));
+                this.columnClickListener = null;
+                resolve(possibleColumns.includes(selectedColumn) ? selectedColumn : null);
+            }
+
+        });
+    }
+
+
 }
 
 const board = new Board();
