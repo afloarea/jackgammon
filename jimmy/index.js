@@ -60,8 +60,8 @@ function sendJoinMessage(name, ready) {
 let playingColor;
 
 function handleInit(msg) {
-  document.getElementById("player-info").classList.add(playingColor);
   playingColor = msg.playingColor;
+  document.getElementById("player-info").classList.add(playingColor);
   board.initColumns(msg.board);
   board.draw();
 }
@@ -81,12 +81,17 @@ function displayGameOver(msg) {
 }
 
 function selectMove(possibleMoves) {
+  if (Object.keys(possibleMoves).length === 0) {
+    return;
+  }
   board.getPlayerMove(possibleMoves).then(selectedMove => {
     const msg = {
       "type": "select-move",
       playingColor,
       selectedMove
     };
+
+    console.log("sending selected move: " + JSON.stringify(msg));
 
     socket.send(JSON.stringify(msg));
   });

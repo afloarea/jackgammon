@@ -15,7 +15,6 @@ PROPS.PIx2 = 2 * Math.PI;
 PROPS.BLACK = 'black';
 PROPS.WHITE = 'yellow';
 PROPS.HIGHLIGHT = 'purple';
-PROPS.UNHIGHLIGHT = 'white';
 
 PROPS.context.strokeStyle='purple'
 
@@ -50,7 +49,7 @@ class Piece {
     draw() {
         PROPS.context.beginPath();
         PROPS.context.arc(this.x, this.y, PROPS.PIECE_RADIUS, 0, PROPS.PIx2);
-        PROPS.context.fillStyle=this.color;
+        PROPS.context.fillStyle = this.color;
         PROPS.context.fill();
         PROPS.context.stroke();
     }
@@ -62,6 +61,8 @@ class Column {
     x;
     pieces;
     maxPieceHeight;
+
+    highlighted = false;
 
 
     constructor(base, direction, x, maxPieceHeight=PROPS.COLUMN_MAX_PIECE_HEIGHT) {
@@ -149,22 +150,12 @@ class Column {
         PROPS.context.lineTo(this.x + PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
         PROPS.context.closePath();
         PROPS.context.stroke();
+        if (this.highlighted) {
+            PROPS.context.fillStyle = PROPS.HIGHLIGHT;
+            PROPS.context.fill();
+        }
+        
     }
-
-    //TODO: Probably remove this at some point
-    highlight(enabled) {
-        PROPS.context.fillStyle = enabled ? PROPS.HIGHLIGHT : PROPS.UNHIGHLIGHT;
-
-        PROPS.context.beginPath();
-        PROPS.context.moveTo(this.x - PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
-        PROPS.context.lineTo(this.x, this.base + this.direction * this.maxPieceHeight * PROPS.PIECE_DIAMETER);
-        PROPS.context.lineTo(this.x + PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
-        PROPS.context.closePath();
-        PROPS.context.fill();
-
-        this.pieces.forEach(piece => piece.draw());
-    }
-
 }
 
 class Board {
@@ -227,7 +218,7 @@ class Board {
 
     initColumns(boardColumns) {
         boardColumns.forEach(column => {
-            this.columnsById.get(column.columnId).init(column.pieces, column.color);
+            this.columnsById.get(column.columnId).init(column.pieces, column.color === 'black' ? PROPS.BLACK : PROPS.WHITE);
         });
 
         // maybe remove this? or move it somewhere else
@@ -315,14 +306,17 @@ class Board {
     columnClickListener = null;
 
     async getColumnInput(possibleColumns) {
+        const self = this;
         return new Promise((resolve) => {
 
             // highlight
-            possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlight(true));
+            possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlighted = true);
+            self.draw();
             console.log('highlight columns: ' + possibleColumns);
             this.columnClickListener = function(selectedColumn) {
                 // remove highlight
-                possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlight(false));
+                possibleColumns.map(columnId => this.columnsById.get(columnId)).forEach(column => column.highlighted = false);
+                self.draw();
                 this.columnClickListener = null;
                 resolve(possibleColumns.includes(selectedColumn) ? selectedColumn : null);
             }
