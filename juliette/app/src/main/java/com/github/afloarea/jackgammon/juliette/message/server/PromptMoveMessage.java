@@ -3,19 +3,23 @@ package com.github.afloarea.jackgammon.juliette.message.server;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 public final class PromptMoveMessage implements GameToPlayerMessage {
 
-    private final Set<GameMove> possibleMoves;
+    private final Map<String, Set<String>> possibleMoves;
 
     public PromptMoveMessage(Set<GameMove> possibleMoves) {
-        this.possibleMoves = possibleMoves;
+        this.possibleMoves = possibleMoves.stream()
+                .collect(Collectors.groupingBy(
+                        GameMove::getFrom, Collectors.mapping(GameMove::getTo, Collectors.toSet())));
     }
 
-    public Set<GameMove> getPossibleMoves() {
+    public Map<String, Set<String>> getPossibleMoves() {
         return possibleMoves;
     }
 

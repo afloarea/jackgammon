@@ -2,8 +2,7 @@
   "type": "notify-move",
   "playingColor": "black",
   "move": {
-    "type": "simple",
-    "source": 0,
-    "target": 2
+    "source": "A",
+    "target": "B"
   }
 }

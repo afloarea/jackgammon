@@ -15,8 +15,8 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(2, 1);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 1));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 2));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 1));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
 
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
@@ -26,10 +26,10 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(2, 2);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 2));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(2, 4));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(4, 6));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 2));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(2, 4));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(4, 6));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
 
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
@@ -43,8 +43,8 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(1, 6);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(GameMove.enter(0)));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.enter(0));
+        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildEnter(Color.BLACK, 0)));
+        board.executeMoveForPlayingColor(Color.BLACK, buildEnter(Color.BLACK, 0));
     }
 
     @Test void unableToEnter() {
@@ -67,8 +67,8 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(4, 1);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 4));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(0, 1));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 4));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 1));
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
 
         final var secondDice = new DiceResult(6, 6);
@@ -86,15 +86,15 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(4, 3);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertEquals(Set.of(GameMove.enter(2)), board.getPossibleMovesForCurrentPlayingColor());
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.enter(2));
+        Assertions.assertEquals(Set.of(buildEnter(Color.BLACK, 2)), board.getPossibleMovesForCurrentPlayingColor());
+        board.executeMoveForPlayingColor(Color.BLACK, buildEnter(Color.BLACK, 2));
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
 
         final var secondDice = new DiceResult(6, 2);
 
         board.updateDiceForPlayingColor(Color.WHITE, secondDice);
-        Assertions.assertEquals(Set.of(GameMove.enter(22)), board.getPossibleMovesForCurrentPlayingColor());
-        board.executeMoveForPlayingColor(Color.WHITE, GameMove.enter(22));
+        Assertions.assertEquals(Set.of(buildEnter(Color.WHITE, 22)), board.getPossibleMovesForCurrentPlayingColor());
+        board.executeMoveForPlayingColor(Color.WHITE, buildEnter(Color.WHITE, 22));
         Assertions.assertFalse(board.currentPlayingColorFinishedTurn());
     }
 
@@ -107,8 +107,8 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(3, 2);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.collect(22));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.collect(21));
+        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 22));
+        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 21));
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
         Assertions.assertTrue(board.isGameComplete());
         Assertions.assertEquals(Color.BLACK, board.getWinningColor());
@@ -123,7 +123,7 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(6, 5);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertEquals(Set.of(GameMove.collect(20)), board.getPossibleMovesForCurrentPlayingColor());
+        Assertions.assertEquals(Set.of(buildCollect(Color.BLACK, 20)), board.getPossibleMovesForCurrentPlayingColor());
     }
 
     @Test void testMoveAndCollect() {
@@ -135,11 +135,23 @@ class BasicGameBoardTest {
         final var diceResult = new DiceResult(3, 5);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.move(16, 19));
-        board.executeMoveForPlayingColor(Color.BLACK, GameMove.collect(19));
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(16, 19));
+        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 19));
 
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
         Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().isEmpty());
+    }
+
+    private GameMove buildMove(int from, int to) {
+        return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), BoardFactory.IDS_BY_POSITION.get(to));
+    }
+
+    private GameMove buildEnter(Color color, int to) {
+        return new GameMove("S" + color.getSymbol(), BoardFactory.IDS_BY_POSITION.get(to));
+    }
+
+    private GameMove buildCollect(Color color, int from) {
+        return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), "C" + color.getSymbol());
     }
 
 }

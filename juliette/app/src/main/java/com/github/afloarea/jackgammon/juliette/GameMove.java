@@ -7,28 +7,13 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class GameMove {
-    private final MoveType type;
-    private final int from;
-    private final int to;
+    private final String from;
+    private final String to;
 
-    public GameMove(@JsonProperty("type") MoveType type,
-                    @JsonProperty("source") int from,
-                    @JsonProperty("target") int to) {
-        this.type = type;
+    public GameMove(@JsonProperty("source") String from,
+                    @JsonProperty("target") String to) {
         this.from = from;
         this.to = to;
-    }
-
-    public static GameMove move(int from, int to) {
-        return new GameMove(MoveType.SIMPLE, from, to);
-    }
-
-    public static GameMove enter(int to) {
-        return new GameMove(MoveType.ENTER, -1, to);
-    }
-
-    public static GameMove collect(int from) {
-        return new GameMove(MoveType.COLLECT, from, -1);
     }
 
     @Override
@@ -36,32 +21,27 @@ public final class GameMove {
         if (this == o) return true;
         if (!(o instanceof GameMove)) return false;
         GameMove gameMove = (GameMove) o;
-        return from == gameMove.from && to == gameMove.to && type == gameMove.type;
+        return from.equals(gameMove.from) && to.equals(gameMove.to);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, from, to);
+        return Objects.hash(from, to);
     }
 
     @JsonGetter("source")
-    public int getFrom() {
+    public String getFrom() {
         return from;
     }
 
     @JsonGetter("target")
-    public int getTo() {
+    public String getTo() {
         return to;
-    }
-
-    public MoveType getType() {
-        return type;
     }
 
     @Override
     public String toString() {
         return new StringJoiner(",", "GM[", "]")
-                .add(String.valueOf(type))
                 .add("from=" + from)
                 .add("to=" + to)
                 .toString();

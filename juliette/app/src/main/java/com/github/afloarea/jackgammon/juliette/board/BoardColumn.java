@@ -9,18 +9,18 @@ public final class BoardColumn {
 
     private int pieceCount;
     private Color pieceColor;
-    private final int position;
+    private final String id;
 
-    public BoardColumn(int position) {
-        this.position = position;
+    public BoardColumn(String id) {
+        this.id = id;
         this.pieceColor = Color.NONE;
         this.pieceCount = 0;
     }
 
-    public BoardColumn(int pieceCount, Color pieceColor, int position) {
+    public BoardColumn(int pieceCount, Color pieceColor, String id) {
         this.pieceCount = pieceCount;
         this.pieceColor = pieceColor;
-        this.position = position;
+        this.id = id;
     }
 
     public int getPieceCount() {
@@ -31,8 +31,8 @@ public final class BoardColumn {
         return pieceColor;
     }
 
-    public int getPosition() {
-        return position;
+    public String getId() {
+        return id;
     }
 
     public boolean canAccept(Color pieceColor) {
@@ -71,11 +71,11 @@ public final class BoardColumn {
         if (this == o) return true;
         if (!(o instanceof BoardColumn)) return false;
         BoardColumn that = (BoardColumn) o;
-        return pieceCount == that.pieceCount && position == that.position && pieceColor == that.pieceColor;
+        return pieceCount == that.pieceCount && id.equals(that.id) && pieceColor == that.pieceColor;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceCount, pieceColor, position);
+        return Objects.hash(pieceCount, pieceColor, id);
     }
 }

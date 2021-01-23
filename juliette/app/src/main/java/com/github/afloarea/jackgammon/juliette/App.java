@@ -3,7 +3,7 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.NotifyMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerJoinMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;

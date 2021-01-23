@@ -2,7 +2,6 @@ package com.github.afloarea.jackgammon.juliette.message.server;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

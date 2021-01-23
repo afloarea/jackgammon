@@ -1,13 +1,12 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 //TODO:
 // Think about exposing suspended pieces
@@ -22,8 +21,10 @@ public final class BasicGameBoard implements GameBoard {
     private final BoardColumn[] blackViewBoardColumns = new BoardColumn[TOTAL_COLUMNS];
     private final BoardColumn[] whiteViewBoardColumns = new BoardColumn[TOTAL_COLUMNS];
 
-    private final Map<Color, Integer> suspendedPieces = new EnumMap<>(Map.of(Color.BLACK, 0, Color.WHITE, 0));
-    private final Map<Color, Integer> collectedPieces = new EnumMap<>(Map.of(Color.BLACK, 0, Color.WHITE, 0));
+    private final Map<String, BoardColumn> columnsById = new HashMap<>();
+
+    private final Map<Color, BoardColumn> suspendedByColor = new EnumMap<>(Color.class);
+    private final Map<Color, BoardColumn> collectedByColor = new EnumMap<>(Color.class);
 
     private Color currentPlayingColor = Color.NONE;
 
@@ -44,10 +45,17 @@ public final class BasicGameBoard implements GameBoard {
         for (int index = 0; index < TOTAL_COLUMNS; index++) {
             whiteViewBoardColumns[index] = blackViewBoardColumns[TOTAL_COLUMNS - index - 1];
         }
-        suspendedPieces.put(Color.BLACK, suspendedBlack);
-        suspendedPieces.put(Color.WHITE, suspendedWhite);
-        collectedPieces.put(Color.BLACK, collectedBlack);
-        collectedPieces.put(Color.WHITE, collectedWhite);
+        suspendedByColor.put(Color.BLACK, new BoardColumn(suspendedBlack, Color.BLACK, "SB"));
+        suspendedByColor.put(Color.WHITE, new BoardColumn(suspendedWhite, Color.WHITE, "SW"));
+        collectedByColor.put(Color.BLACK, new BoardColumn(collectedBlack, Color.BLACK, "CB"));
+        collectedByColor.put(Color.WHITE, new BoardColumn(collectedWhite, Color.WHITE, "CW"));
+
+        final var grouped = Stream.concat(
+                Arrays.stream(boardColumns),
+                Stream.concat(suspendedByColor.values().stream(), collectedByColor.values().stream()))
+                .collect(Collectors.toMap(BoardColumn::getId, Function.identity()));
+        columnsById.putAll(grouped);
+
     }
 
     @Override
@@ -62,9 +70,9 @@ public final class BasicGameBoard implements GameBoard {
 
     @Override
     public Color getWinningColor() {
-        return collectedPieces.entrySet().stream()
-                .filter(entry -> entry.getValue() == MAX_PLAYER_PIECES)
-                .map(Map.Entry::getKey)
+        return collectedByColor.values().stream()
+                .filter(column -> column.getPieceCount() == MAX_PLAYER_PIECES)
+                .map(BoardColumn::getPieceColor)
                 .findFirst()
                 .orElse(Color.NONE);
     }
@@ -100,43 +108,19 @@ public final class BasicGameBoard implements GameBoard {
             throw new IllegalGameActionException("Move cannot be made");
         }
 
-        final int usedDiceValue = optionalDiceValueUsed.get();
-        if (move.getType() == MoveType.COLLECT) {
-            blackViewBoardColumns[move.getFrom()].removePiece();
-            collectPiece();
-            remainingDiceValues.remove((Integer) usedDiceValue);
-            updatePossibleMoves();
-            return;
-        }
+        final var sourceColumn = columnsById.get(move.getFrom());
+        final var targetColumn = columnsById.get(move.getTo());
 
-        if (move.getType() == MoveType.ENTER) {
-            removeSuspendedPiece();
-        } else { // simple move
-            blackViewBoardColumns[move.getFrom()].removePiece();
-        }
-
-        // add piece to new position, suspending opponent piece if necessary
-        final var targetColumn = blackViewBoardColumns[move.getTo()];
         if (targetColumn.getPieceColor() == currentPlayingColor.complement()) {
+            suspendedByColor.get(currentPlayingColor.complement()).addPiece(currentPlayingColor.complement());
             targetColumn.removePiece();
-            suspendPiece();
         }
+
         targetColumn.addPiece(currentPlayingColor);
+        sourceColumn.removePiece();
 
-        remainingDiceValues.remove((Integer) usedDiceValue);
+        remainingDiceValues.remove(optionalDiceValueUsed.get());
         updatePossibleMoves();
-    }
-
-    private void suspendPiece() {
-        suspendedPieces.compute(currentPlayingColor.complement(), (k, v) -> v + 1);
-    }
-
-    private void removeSuspendedPiece() {
-        suspendedPieces.compute(currentPlayingColor, (k, v) -> v - 1);
-    }
-
-    private void collectPiece() {
-        collectedPieces.compute(currentPlayingColor, (k, v) -> v + 1);
     }
 
     private void updatePossibleMoves() {
@@ -186,7 +170,7 @@ public final class BasicGameBoard implements GameBoard {
         if (getSuspendedPiecesForCurrentPlayer() > 0) {
             final var column = workingBoard[diceValue - 1];
             return column.canAccept(currentPlayingColor)
-                    ? Set.of(GameMove.enter(column.getPosition()))
+                    ? Set.of(new GameMove(suspendedByColor.get(currentPlayingColor).getId(), column.getId()))
                     : Collections.emptySet();
         }
 
@@ -214,8 +198,7 @@ public final class BasicGameBoard implements GameBoard {
         if (newIndex >= workingBoard.length || !workingBoard[newIndex].canAccept(currentPlayingColor)) {
             return Optional.empty();
         }
-        return Optional.of(
-                GameMove.move(workingBoard[index].getPosition(), workingBoard[newIndex].getPosition()));
+        return Optional.of(new GameMove(workingBoard[index].getId(), workingBoard[newIndex].getId()));
     }
 
     private Optional<GameMove> generateCollectMove(int diceValue) {
@@ -230,7 +213,9 @@ public final class BasicGameBoard implements GameBoard {
 
         final int complementDiceValue = 6 - diceValue;
         if (homeColumns.get(complementDiceValue).getPieceColor() == currentPlayingColor) {
-            return Optional.of(GameMove.collect(homeColumns.get(complementDiceValue).getPosition()));
+            return Optional.of(new GameMove(
+                    homeColumns.get(complementDiceValue).getId(),
+                    collectedByColor.get(currentPlayingColor).getId()));
         }
 
         return IntStream.range(0, 6)
@@ -238,15 +223,15 @@ public final class BasicGameBoard implements GameBoard {
                 .boxed()
                 .findFirst()
                 .filter(foundIndex -> foundIndex >= complementDiceValue)
-                .map(index -> GameMove.collect(homeColumns.get(index).getPosition()));
+                .map(index -> new GameMove(homeColumns.get(index).getId(), collectedByColor.get(currentPlayingColor).getId()));
     }
 
     private int getCollectedPiecesForCurrentPlayer() {
-        return collectedPieces.get(currentPlayingColor);
+        return collectedByColor.get(currentPlayingColor).getPieceCount();
     }
 
     private int getSuspendedPiecesForCurrentPlayer() {
-        return suspendedPieces.get(currentPlayingColor);
+        return suspendedByColor.get(currentPlayingColor).getPieceCount();
     }
 
     private BoardColumn[] getBoardViewForCurrentPlayer() {
@@ -255,13 +240,15 @@ public final class BasicGameBoard implements GameBoard {
 
     @Override
     public boolean isGameComplete() {
-        return collectedPieces.values().stream().anyMatch(collected -> collected == MAX_PLAYER_PIECES);
+        return collectedByColor.values().stream()
+                .mapToInt(BoardColumn::getPieceCount)
+                .anyMatch(collected -> collected == MAX_PLAYER_PIECES);
     }
 
     @Override
     public String toString() {
         return BoardFactory.display(blackViewBoardColumns, whiteViewBoardColumns,
-                suspendedPieces.get(Color.BLACK), suspendedPieces.get(Color.WHITE),
-                collectedPieces.get(Color.BLACK), collectedPieces.get(Color.WHITE));
+                suspendedByColor.get(Color.BLACK).getPieceCount(), suspendedByColor.get(Color.WHITE).getPieceCount(),
+                collectedByColor.get(Color.BLACK).getPieceCount(), collectedByColor.get(Color.WHITE).getPieceCount());
     }
 }

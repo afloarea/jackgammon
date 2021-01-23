@@ -1,18 +1,7 @@
 {
   "type": "prompt-move",
-  "possibleMoves": [
-    {
-      "type": "collect",
-      "source": 22
-    },
-    {
-      "type": "enter",
-      "target": 0
-    },
-    {
-      "type": "simple",
-      "source": 18,
-      "target": 20
-    }
-  ]
+  "possibleMoves": {
+    "A": ["B", "C", "H"],
+    "B": ["C", "D", "I"]
+  }
 }

@@ -3,10 +3,21 @@ package com.github.afloarea.jackgammon.juliette.board;
 import com.github.afloarea.jackgammon.juliette.Color;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class BoardFactory {
+    public static final Map<Integer, String> IDS_BY_POSITION;
+
+    static {
+        final String identifiers = "ABCDEFGHIJKLXWVUTSRQPONM";
+        IDS_BY_POSITION = IntStream.range(0, identifiers.length()).boxed()
+                .collect(Collectors.toUnmodifiableMap(
+                        Function.identity(), index -> String.valueOf(identifiers.charAt(index))));
+    }
+
     private BoardFactory() {}
 
     public static BasicGameBoard buildDefaultBoard() {
@@ -38,9 +49,9 @@ public final class BoardFactory {
 
     private static BoardColumn buildColumnFrom(int value, int position) {
         if (value == 0) {
-            return new BoardColumn(position);
+            return new BoardColumn(IDS_BY_POSITION.get(position));
         }
-        return new BoardColumn(Math.abs(value), value < 0 ? Color.BLACK : Color.WHITE, position);
+        return new BoardColumn(Math.abs(value), value < 0 ? Color.BLACK : Color.WHITE, IDS_BY_POSITION.get(position));
     }
 
     static String display(BoardColumn[] blackViewColumns, BoardColumn[] whiteViewColumns,

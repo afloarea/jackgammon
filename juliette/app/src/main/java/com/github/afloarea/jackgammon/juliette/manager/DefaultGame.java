@@ -3,7 +3,7 @@ package com.github.afloarea.jackgammon.juliette.manager;
 import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.board.GameBoard;
-import com.github.afloarea.jackgammon.juliette.message.NotifyMoveMessage;
+import com.github.afloarea.jackgammon.juliette.message.server.NotifyMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.message.server.*;

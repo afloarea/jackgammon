@@ -1,18 +1,14 @@
 {
   "type": "game-init",
   "playingColor": "black",
-  "board": {
-    "black": {
-      "0": 2,
-      "11": 5,
-      "16": 3,
-      "18": 5
-    },
-    "white": {
-      "5": 5,
-      "7": 3,
-      "12": 5,
-      "23": 2
-    }
-  }
+  "board": [
+    {"columnId": "A", "pieces": 2, "color": "black"},
+    {"columnId": "F", "pieces": 5, "color": "white"},
+    {"columnId": "H", "pieces": 3, "color": "white"},
+    {"columnId": "L", "pieces": 5, "color": "black"},
+    {"columnId": "M", "pieces": 2, "color": "white"},
+    {"columnId": "R", "pieces": 5, "color": "black"},
+    {"columnId": "T", "pieces": 3, "color": "black"},
+    {"columnId": "X", "pieces": 5, "color": "white"}
+  ]
 }

@@ -8,20 +8,16 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class InitGameMessage implements GameToPlayerMessage {
-    private static final String BOARD_VALUE = "{\n" +
-            "    \"black\": {\n" +
-            "      \"0\": 2,\n" +
-            "      \"11\": 5,\n" +
-            "      \"16\": 3,\n" +
-            "      \"18\": 5\n" +
-            "    },\n" +
-            "    \"white\": {\n" +
-            "      \"5\": 5,\n" +
-            "      \"7\": 3,\n" +
-            "      \"12\": 5,\n" +
-            "      \"23\": 2\n" +
-            "    }\n" +
-            "  }";
+    private static final String BOARD_VALUE = "[\n" +
+            "    {\"columnId\": \"A\", \"pieces\": 2, \"color\": \"black\"},\n" +
+            "    {\"columnId\": \"F\", \"pieces\": 5, \"color\": \"white\"},\n" +
+            "    {\"columnId\": \"H\", \"pieces\": 3, \"color\": \"white\"},\n" +
+            "    {\"columnId\": \"L\", \"pieces\": 5, \"color\": \"black\"},\n" +
+            "    {\"columnId\": \"M\", \"pieces\": 2, \"color\": \"white\"},\n" +
+            "    {\"columnId\": \"R\", \"pieces\": 5, \"color\": \"black\"},\n" +
+            "    {\"columnId\": \"T\", \"pieces\": 3, \"color\": \"black\"},\n" +
+            "    {\"columnId\": \"X\", \"pieces\": 5, \"color\": \"white\"}\n" +
+            "  ]";
 
     private final Color playingColor;
 

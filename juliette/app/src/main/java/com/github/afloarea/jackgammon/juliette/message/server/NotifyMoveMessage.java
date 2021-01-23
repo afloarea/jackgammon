@@ -1,4 +1,4 @@
-package com.github.afloarea.jackgammon.juliette.message;
+package com.github.afloarea.jackgammon.juliette.message.server;
 
 import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.GameMove;
