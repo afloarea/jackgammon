@@ -19,7 +19,31 @@ public final class MatchWatcherVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
+        vertx.eventBus().consumer("handleDisconnect", this::handleDisconnect);
         vertx.eventBus().consumer("handlePlayerMessage", this::handlePlayerMessage);
+    }
+
+    private void handleDisconnect(Message<String> msg) {
+        LOG.info("Received disconnect message {}", msg.body());
+        final var playerId = msg.headers().get(Headers.CLIENT_ID);
+        if (waitingPlayers.removeIf(player -> playerId.equals(player.getId()))) {
+            return;
+        }
+
+        if (!playersById.containsKey(playerId)) {
+            return;
+        }
+
+        final var playingPlayer = playersById.get(playerId);
+        final var opponentId = playingPlayer.getGame().getPlayersIds().stream()
+                .filter(player -> !playerId.equals(player)).findFirst().get();
+
+        playersById.remove(playerId);
+        playersById.remove(opponentId);
+
+        vertx.eventBus().send(Endpoints.DISCONNECT_PLAYER,
+                "Opponent disconnected",
+                new DeliveryOptions().addHeader(Headers.CLIENT_ID, opponentId));
     }
 
     private void handlePlayerMessage(Message<ClientToServerEvent> message) {
