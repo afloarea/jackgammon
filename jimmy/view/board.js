@@ -225,15 +225,13 @@ class Board {
         });
     }
 
-    initColumns() {
-        this.columnsById.get('A').init(2, PROPS.BLACK);
-        this.columnsById.get('F').init(5, PROPS.WHITE);
-        this.columnsById.get('H').init(3, PROPS.WHITE);
-        this.columnsById.get('L').init(5, PROPS.BLACK);
-        this.columnsById.get('M').init(2, PROPS.WHITE);
-        this.columnsById.get('R').init(5, PROPS.BLACK);
-        this.columnsById.get('T').init(3, PROPS.BLACK);
-        this.columnsById.get('X').init(5, PROPS.WHITE);
+    initColumns(boardColumns) {
+        boardColumns.forEach(column => {
+            this.columnsById.get(column.columnId).init(column.pieces, column.color);
+        });
+
+        // maybe remove this? or move it somewhere else
+        this.draw();
     }
 
 
@@ -334,7 +332,3 @@ class Board {
 
 
 }
-
-const board = new Board();
-board.initColumns();
-board.draw();

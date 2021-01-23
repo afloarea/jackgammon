@@ -1,20 +1,5 @@
-ol li {
-    float: left;
-    list-style-type: none;
-}
-
-button {
-    width: 80px;
-}
-
-.black {
-    background-color: black;
-    color: white;
-}
-
-.white {
-    background-color: rgb(231, 235, 39);
-    color: black;
+canvas {
+    border:1px solid #000000;
 }
 
 .row {
