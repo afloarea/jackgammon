@@ -19,7 +19,7 @@ public final class BoardColumn {
 
     public BoardColumn(int pieceCount, Color pieceColor, String id) {
         this.pieceCount = pieceCount;
-        this.pieceColor = pieceColor;
+        this.pieceColor = pieceCount == 0 ? Color.NONE : pieceColor;
         this.id = id;
     }
 

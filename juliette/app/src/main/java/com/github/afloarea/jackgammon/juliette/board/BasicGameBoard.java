@@ -106,34 +106,18 @@ public final class BasicGameBoard implements GameBoard {
             throw new IllegalGameActionException("Move cannot be made");
         }
 
-        final var sourceColumn = columnsById.get(move.getFrom());
-        final var targetColumn = columnsById.get(move.getTo());
-
-        final var executedMoves = new ArrayList<GameMove>();
-        final var opponentColor = currentPlayingColor.complement();
-
-        if (targetColumn.getPieceColor() == opponentColor) {
-            final var suspendedColumn = suspendedByColor.get(opponentColor);
-            suspendedColumn.addPiece(opponentColor);
-            targetColumn.removePiece();
-            executedMoves.add(new GameMove(targetColumn.getId(), suspendedColumn.getId()));
-        }
-
-        targetColumn.addPiece(currentPlayingColor);
-        sourceColumn.removePiece();
-        executedMoves.add(move);
-
+        final var executedMoves = doMove(move);
         remainingDiceValues.remove(optionalDiceValueUsed.get());
         updatePossibleMoves();
         return executedMoves;
     }
 
     private void updatePossibleMoves() {
-        possibleMovesByDiceValue.clear();
         final var computedMoves = computePossibleMovesForCurrentPlayer();
         if (currentDiceResult.isSimple() && remainingDiceValues.size() == 2) {
             removeInvalidMoves(computedMoves);
         }
+        possibleMovesByDiceValue.clear();
         possibleMovesByDiceValue.putAll(computedMoves);
         if (possibleMovesByDiceValue.values().stream().allMatch(Set::isEmpty)) {
             remainingDiceValues.clear();
@@ -169,36 +153,34 @@ public final class BasicGameBoard implements GameBoard {
     private Map<Integer, Set<GameMove>> computePossibleMovesForCurrentPlayer() {
         return remainingDiceValues.stream()
                 .distinct()
-                .collect(Collectors.toMap(Function.identity(), this::computePossibleMovesForCurrentPlayer));
+                .collect(Collectors.toMap(Function.identity(),
+                        dice -> computePossibleMovesForCurrentPlayer(dice).collect(Collectors.toSet())));
     }
 
-    private Set<GameMove> computePossibleMovesForCurrentPlayer(int diceValue) {
+    private Stream<GameMove> computePossibleMovesForCurrentPlayer(int diceValue) {
         final var workingBoard = getBoardViewForCurrentPlayer();
 
         // enter-type move
         if (getSuspendedPiecesForCurrentPlayer() > 0) {
             final var column = workingBoard[diceValue - 1];
             return column.canAccept(currentPlayingColor)
-                    ? Set.of(new GameMove(suspendedByColor.get(currentPlayingColor).getId(), column.getId()))
-                    : Collections.emptySet();
+                    ? Stream.of(new GameMove(suspendedByColor.get(currentPlayingColor).getId(), column.getId()))
+                    : Stream.empty();
         }
 
         // simple moves
-        final Set<GameMove> viableMoves = generateSimpleMoves(diceValue);
+        final Stream<GameMove> viableMoves = generateSimpleMoves(diceValue);
 
-        // collect-type move
-        generateCollectMove(diceValue).ifPresent(viableMoves::add);
-
-        return viableMoves;
+        // add collect-type move
+        return Stream.concat(viableMoves, generateCollectMove(diceValue).stream());
     }
 
-    private Set<GameMove> generateSimpleMoves(int distance) {
+    private Stream<GameMove> generateSimpleMoves(int distance) {
         final var workingBoard = getBoardViewForCurrentPlayer();
         return IntStream.range(0, workingBoard.length)
                 .filter(index -> workingBoard[index].getPieceColor() == currentPlayingColor)
                 .mapToObj(index -> generateSimpleMove(index, distance))
-                .flatMap(Optional::stream)
-                .collect(Collectors.toSet());
+                .flatMap(Optional::stream);
     }
 
     private Optional<GameMove> generateSimpleMove(int index, int distance) {
@@ -263,51 +245,24 @@ public final class BasicGameBoard implements GameBoard {
     }
 
     private void removeInvalidMoves(final Map<Integer, Set<GameMove>> possibleMovesByDiceValue) {
-        final var workingBoard = getBoardViewForCurrentPlayer();
-        final int dice1 = currentDiceResult.getDice1();
-        final int dice2 = currentDiceResult.getDice2();
-        final Map<Integer, List<BoardColumn>> availableColumnsForDice = new HashMap<>();
-        availableColumnsForDice.put(dice1, new ArrayList<>());
-        availableColumnsForDice.put(dice2, new ArrayList<>());
+        // one dice value has only one possible move
+        // the other dice value has multiple possible moves but also has a move with the same source
+        // the source has only one piece
 
-        if (!suspendedByColor.get(currentPlayingColor).isEmpty()) {
-            if (workingBoard[currentDiceResult.getDice1() - 1].canAccept(currentPlayingColor)) {
-                availableColumnsForDice.get(currentDiceResult.getDice1()).add(suspendedByColor.get(currentPlayingColor));
-            }
-            if (workingBoard[currentDiceResult.getDice2() - 1].canAccept(currentPlayingColor)) {
-                availableColumnsForDice.get(currentDiceResult.getDice2()).add(suspendedByColor.get(currentPlayingColor));
-            }
-        }
+        // compute possible moves after making each move
+        // if one of them leads to an empty possible move set and the other doesn't, remove the move that does
 
-        for (int index = 0; index < workingBoard.length; index++) {
-            if (workingBoard[index].getPieceColor() != currentPlayingColor) {
-                continue;
-            }
-
-            if (index + dice1 < workingBoard.length && workingBoard[index + dice1].canAccept(currentPlayingColor)) {
-                availableColumnsForDice.get(currentDiceResult.getDice1()).add(workingBoard[index]);
-            }
-            if (index + dice2 < workingBoard.length && workingBoard[index + dice2].canAccept(currentPlayingColor)) {
-                availableColumnsForDice.get(currentDiceResult.getDice2()).add(workingBoard[index]);
-            }
-        }
-
-        final int movablePiecesWithDice1 = availableColumnsForDice.get(currentDiceResult.getDice1()).stream()
-                .mapToInt(BoardColumn::getPieceCount)
-                .sum();
-
-        final int movablePiecesWithDice2 = availableColumnsForDice.get(currentDiceResult.getDice2()).stream()
-                .mapToInt(BoardColumn::getPieceCount)
-                .sum();
-
-        if (movablePiecesWithDice1 == movablePiecesWithDice2 || movablePiecesWithDice1 == 0 || movablePiecesWithDice2 == 0
-                || (movablePiecesWithDice1 != 1 && movablePiecesWithDice2 != 1)) {
+        final Integer dice1 = currentDiceResult.getDice1();
+        final Integer dice2 = currentDiceResult.getDice2();
+        final int moveCount1 = possibleMovesByDiceValue.get(dice1).size();
+        final int moveCount2 = possibleMovesByDiceValue.get(dice2).size();
+        if (moveCount1 == moveCount2 || Math.min(moveCount1, moveCount2) != 1) {
             return;
         }
 
         final int lowCountDice;
         final int highCountDice;
-        if (movablePiecesWithDice1 < movablePiecesWithDice2) {
+        if (moveCount1 < moveCount2) {
             lowCountDice = currentDiceResult.getDice1();
             highCountDice = currentDiceResult.getDice2();
         } else  {
@@ -315,17 +270,70 @@ public final class BasicGameBoard implements GameBoard {
             lowCountDice = currentDiceResult.getDice2();
         }
 
-        final var column = availableColumnsForDice.get(lowCountDice).iterator().next();
-        IntStream.range(0, workingBoard.length)
-                .filter(index -> workingBoard[index].getId().equals(column.getId()))
-                .findFirst()
-                .ifPresent(columnIndex -> {
-                    final int newIndex = columnIndex + highCountDice + lowCountDice;
-                    if (newIndex >= workingBoard.length
-                            || !workingBoard[newIndex].canAccept(currentPlayingColor)) {
-                        possibleMovesByDiceValue.get(highCountDice).removeIf(gameMove ->
-                                column.getId().equals(gameMove.getFrom()));
-                    }
-                });
+        final var lowCountMove = possibleMovesByDiceValue.get(lowCountDice).iterator().next();
+        final var lowCountColumn = columnsById.get(lowCountMove.getFrom());
+        if (lowCountColumn.getPieceCount() != 1) {
+            return;
+        }
+        final var highCountMove = possibleMovesByDiceValue.get(highCountDice).stream()
+                .filter(gameMove -> lowCountColumn.getId().equals(gameMove.getFrom()))
+                .findFirst();
+        if (highCountMove.isEmpty()) {
+            return;
+        }
+
+        final boolean canUseDiceAfterLowCountMove = canUseDiceAfterDoingMove(highCountDice, lowCountMove);
+        final boolean canUseDiceAfterHighCountMove = canUseDiceAfterDoingMove(lowCountDice, highCountMove.get());
+
+        if (canUseDiceAfterLowCountMove && canUseDiceAfterHighCountMove) {
+            return;
+        }
+
+        if (canUseDiceAfterLowCountMove) {
+            possibleMovesByDiceValue.get(highCountDice).remove(highCountMove.get());
+            return;
+        }
+        if (canUseDiceAfterHighCountMove) {
+            possibleMovesByDiceValue.get(lowCountDice).remove(lowCountMove);
+        }
+    }
+
+    private boolean canUseDiceAfterDoingMove(int dice, GameMove move) {
+        final var movesDone = doMove(move);
+        final boolean blockedAfterMove = computePossibleMovesForCurrentPlayer(dice).findAny().isEmpty();
+        undoMoves(movesDone);
+        return !blockedAfterMove;
+    }
+
+    private List<GameMove> doMove(GameMove move) {
+        final var sourceColumn = columnsById.get(move.getFrom());
+        final var targetColumn = columnsById.get(move.getTo());
+
+        final var executedMoves = new ArrayList<GameMove>();
+        final var opponentColor = currentPlayingColor.complement();
+
+        if (targetColumn.getPieceColor() == opponentColor) {
+            final var suspendedColumn = suspendedByColor.get(opponentColor);
+            suspendedColumn.addPiece(opponentColor);
+            targetColumn.removePiece();
+            executedMoves.add(new GameMove(targetColumn.getId(), suspendedColumn.getId()));
+        }
+
+        targetColumn.addPiece(currentPlayingColor);
+        sourceColumn.removePiece();
+        executedMoves.add(move);
+
+        return executedMoves;
+    }
+
+    private void undoMoves(List<GameMove> moves) {
+        for (var iterator = moves.listIterator(moves.size()); iterator.hasPrevious();) {
+            final var move = iterator.previous();
+            final var newSource = columnsById.get(move.getTo());
+            final var newTarget = columnsById.get(move.getFrom());
+
+            newTarget.addPiece(newSource.getPieceColor());
+            newSource.removePiece();
+        }
     }
 }
