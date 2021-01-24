@@ -159,7 +159,7 @@ class BasicGameBoardTest {
         final var board = BoardFactory.build(
                 new int[] {2, 4, 3, 0, 0, 0,    0, 0, 0, 0, 0, -1},
                 new int[] {-2, -3, -2, -2, -2, -3,  0, 0, 0, 0, 0, 1},
-                0, 0, 13, 5
+                0, 0, 0, 5
         );
         final var diceResult = new DiceResult(6, 1);
 
@@ -167,6 +167,20 @@ class BasicGameBoardTest {
 
         final var availableMoves = board.getPossibleMovesForCurrentPlayingColor();
         Assertions.assertTrue(availableMoves.contains(buildMove(11, 12)));
+    }
+
+    @Test void testNonForcedWithCollect() {
+        final var board = BoardFactory.build(
+                new int[] {6, 2, 2, 2, 2, 0,    0, 0, 0, 0, 0, 0},
+                new int[] {-2, -4, 0, 1, -3, -5,  -1, 0, 0, 0, 0, 0},
+                0, 0, 0, 0
+        );
+        final var diceResult = new DiceResult(2, 1);
+
+        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.executeMoveForPlayingColor(Color.BLACK, buildMove(17, 18));
+        final var availableMoves = board.getPossibleMovesForCurrentPlayingColor();
+        Assertions.assertTrue(availableMoves.contains(buildCollect(Color.BLACK, 22)));
     }
 
     private GameMove buildMove(int from, int to) {

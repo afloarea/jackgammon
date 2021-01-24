@@ -213,6 +213,7 @@ public final class BasicGameBoard implements GameBoard {
     private Optional<GameMove> generateCollectMove(int diceValue) {
         final var homeColumns = Arrays.stream(getBoardViewForCurrentPlayer()).skip(18).collect(Collectors.toList());
         final var allPiecesHome = homeColumns.stream()
+                .filter(column -> column.getPieceColor() == currentPlayingColor)
                 .mapToInt(BoardColumn::getPieceCount)
                 .sum() + getCollectedPiecesForCurrentPlayer() == MAX_PLAYER_PIECES;
 
