@@ -314,8 +314,17 @@ public final class BasicGameBoard implements GameBoard {
             lowCountDice = currentDiceResult.getDice2();
         }
 
-        final String id = availableColumnsForDice.get(lowCountDice).iterator().next().getId();
-        possibleMovesByDiceValue.get(highCountDice).removeIf(gameMove -> id.equals(gameMove.getFrom()));
-
+        final var column = availableColumnsForDice.get(lowCountDice).iterator().next();
+        IntStream.range(0, workingBoard.length)
+                .filter(index -> workingBoard[index].getId().equals(column.getId()))
+                .findFirst()
+                .ifPresent(columnIndex -> {
+                    final int newIndex = columnIndex + highCountDice + lowCountDice;
+                    if (newIndex >= workingBoard.length
+                            || !workingBoard[newIndex].canAccept(currentPlayingColor)) {
+                        possibleMovesByDiceValue.get(highCountDice).removeIf(gameMove ->
+                                column.getId().equals(gameMove.getFrom()));
+                    }
+                });
     }
 }

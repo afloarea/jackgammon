@@ -155,6 +155,20 @@ class BasicGameBoardTest {
         Assertions.assertEquals(2, board.getPossibleMovesForCurrentPlayingColor().size());
     }
 
+    @Test void testNonForcedMove() {
+        final var board = BoardFactory.build(
+                new int[] {2, 4, 3, 0, 0, 0,    0, 0, 0, 0, 0, -1},
+                new int[] {-2, -3, -2, -2, -2, -3,  0, 0, 0, 0, 0, 1},
+                0, 0, 13, 5
+        );
+        final var diceResult = new DiceResult(6, 1);
+
+        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+
+        final var availableMoves = board.getPossibleMovesForCurrentPlayingColor();
+        Assertions.assertTrue(availableMoves.contains(buildMove(11, 12)));
+    }
+
     private GameMove buildMove(int from, int to) {
         return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), BoardFactory.IDS_BY_POSITION.get(to));
     }

@@ -33,6 +33,7 @@ public class App {
         vertx.eventBus().registerDefaultCodec(NotifyRollMessage.class, new DefaultServerCodec<>());
         vertx.eventBus().registerDefaultCodec(PromptMoveMessage.class, new DefaultServerCodec<>());
         vertx.eventBus().registerDefaultCodec(NotifyMoveMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(NotifyGameEndedMessage.class, new DefaultServerCodec<>());
 
         vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
                 vertx.deployVerticle(WebSocketVerticle.class.getName()));
