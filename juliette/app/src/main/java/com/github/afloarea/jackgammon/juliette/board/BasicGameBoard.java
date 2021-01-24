@@ -10,8 +10,6 @@ import java.util.stream.Stream;
 
 //TODO:
 // Think about exposing suspended pieces
-// the following case is not yet supported:
-//      rolled (6 3) -> can do any, but if you do the 3 you can't do the 6 (you should be forced to do 6 and then 3)
 // composite moves not supported yet
 
 public final class BasicGameBoard implements GameBoard {
@@ -132,7 +130,11 @@ public final class BasicGameBoard implements GameBoard {
 
     private void updatePossibleMoves() {
         possibleMovesByDiceValue.clear();
-        possibleMovesByDiceValue.putAll(computePossibleMovesForCurrentPlayer());
+        final var computedMoves = computePossibleMovesForCurrentPlayer();
+        if (currentDiceResult.isSimple() && remainingDiceValues.size() == 2) {
+            removeInvalidMoves(computedMoves);
+        }
+        possibleMovesByDiceValue.putAll(computedMoves);
         if (possibleMovesByDiceValue.values().stream().allMatch(Set::isEmpty)) {
             remainingDiceValues.clear();
         }
@@ -257,5 +259,63 @@ public final class BasicGameBoard implements GameBoard {
         return BoardFactory.display(blackViewBoardColumns, whiteViewBoardColumns,
                 suspendedByColor.get(Color.BLACK).getPieceCount(), suspendedByColor.get(Color.WHITE).getPieceCount(),
                 collectedByColor.get(Color.BLACK).getPieceCount(), collectedByColor.get(Color.WHITE).getPieceCount());
+    }
+
+    private void removeInvalidMoves(final Map<Integer, Set<GameMove>> possibleMovesByDiceValue) {
+        final var workingBoard = getBoardViewForCurrentPlayer();
+        final int dice1 = currentDiceResult.getDice1();
+        final int dice2 = currentDiceResult.getDice2();
+        final Map<Integer, List<BoardColumn>> availableColumnsForDice = new HashMap<>();
+        availableColumnsForDice.put(dice1, new ArrayList<>());
+        availableColumnsForDice.put(dice2, new ArrayList<>());
+
+        if (!suspendedByColor.get(currentPlayingColor).isEmpty()) {
+            if (workingBoard[currentDiceResult.getDice1() - 1].canAccept(currentPlayingColor)) {
+                availableColumnsForDice.get(currentDiceResult.getDice1()).add(suspendedByColor.get(currentPlayingColor));
+            }
+            if (workingBoard[currentDiceResult.getDice2() - 1].canAccept(currentPlayingColor)) {
+                availableColumnsForDice.get(currentDiceResult.getDice2()).add(suspendedByColor.get(currentPlayingColor));
+            }
+        }
+
+        for (int index = 0; index < workingBoard.length; index++) {
+            if (workingBoard[index].getPieceColor() != currentPlayingColor) {
+                continue;
+            }
+
+            if (index + dice1 < workingBoard.length && workingBoard[index + dice1].canAccept(currentPlayingColor)) {
+                availableColumnsForDice.get(currentDiceResult.getDice1()).add(workingBoard[index]);
+            }
+            if (index + dice2 < workingBoard.length && workingBoard[index + dice2].canAccept(currentPlayingColor)) {
+                availableColumnsForDice.get(currentDiceResult.getDice2()).add(workingBoard[index]);
+            }
+        }
+
+        final int movablePiecesWithDice1 = availableColumnsForDice.get(currentDiceResult.getDice1()).stream()
+                .mapToInt(BoardColumn::getPieceCount)
+                .sum();
+
+        final int movablePiecesWithDice2 = availableColumnsForDice.get(currentDiceResult.getDice2()).stream()
+                .mapToInt(BoardColumn::getPieceCount)
+                .sum();
+
+        if (movablePiecesWithDice1 == movablePiecesWithDice2 || movablePiecesWithDice1 == 0 || movablePiecesWithDice2 == 0
+                || (movablePiecesWithDice1 != 1 && movablePiecesWithDice2 != 1)) {
+            return;
+        }
+
+        final int lowCountDice;
+        final int highCountDice;
+        if (movablePiecesWithDice1 < movablePiecesWithDice2) {
+            lowCountDice = currentDiceResult.getDice1();
+            highCountDice = currentDiceResult.getDice2();
+        } else  {
+            highCountDice = currentDiceResult.getDice1();
+            lowCountDice = currentDiceResult.getDice2();
+        }
+
+        final String id = availableColumnsForDice.get(lowCountDice).iterator().next().getId();
+        possibleMovesByDiceValue.get(highCountDice).removeIf(gameMove -> id.equals(gameMove.getFrom()));
+
     }
 }
