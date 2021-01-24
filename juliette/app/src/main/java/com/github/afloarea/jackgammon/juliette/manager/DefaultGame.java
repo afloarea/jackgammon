@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DefaultGame implements Game {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultGame.class);
@@ -60,23 +61,28 @@ public class DefaultGame implements Game {
     }
 
     private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
-        final var notifyMove = NotifyMoveMessage.from(selectMoveMessage);
-        final var playingColor = notifyMove.getPlayingColor();
-        board.executeMoveForPlayingColor(playingColor, notifyMove.getMove());
+        final var playingColor = selectMoveMessage.getPlayingColor();
+        final var move = selectMoveMessage.getSelectedMove();
 
-        final List<GameToPlayerMessage> playerMessages;
-        final List<GameToPlayerMessage> opponentMessages;
+        final List<GameToPlayerMessage> playerMessages = board.executeMoveForPlayingColor(playingColor, move).stream()
+                .map(executedMoved -> NotifyMoveMessage.of(playingColor, executedMoved))
+                .collect(Collectors.toCollection(ArrayList::new));
+        final List<GameToPlayerMessage> opponentMessages = new ArrayList<>(playerMessages);
+
         if (board.isGameComplete()) {
-            playerMessages = List.of(notifyMove, new NotifyGameEndedMessage(board.getWinningColor()));
-            opponentMessages = playerMessages;
+            final var endMessage = new NotifyGameEndedMessage(board.getWinningColor());
+            playerMessages.add(endMessage);
+            opponentMessages.add(endMessage);
         } else {
-            playerMessages = generateCurrentPlayerMessages(notifyMove);
-            opponentMessages = generateOpponentMessages(notifyMove);
+            playerMessages.add(new PromptMoveMessage(board.getPossibleMovesForCurrentPlayingColor()));
+            if (board.currentPlayingColorFinishedTurn()) {
+                opponentMessages.add(new PromptRollMessage());
+            }
         }
 
         return GameToPlayersMessage.of(
-                getPlayerId(playingColor), playerMessages,
-                getPlayerId(playingColor.complement()), opponentMessages);
+                getPlayerId(playingColor), Collections.unmodifiableList(playerMessages),
+                getPlayerId(playingColor.complement()), Collections.unmodifiableList(opponentMessages));
     }
 
     private List<GameToPlayerMessage> generateOpponentMessages(GameToPlayerMessage notification) {

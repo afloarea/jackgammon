@@ -21,6 +21,10 @@ public final class NotifyMoveMessage implements GameToPlayerMessage {
         return new NotifyMoveMessage(selectMessage.getPlayingColor(), selectMessage.getSelectedMove());
     }
 
+    public static NotifyMoveMessage of(Color color, GameMove move) {
+        return new NotifyMoveMessage(color, move);
+    }
+
     public Color getPlayingColor() {
         return playingColor;
     }

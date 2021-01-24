@@ -90,7 +90,7 @@ public final class BasicGameBoard implements GameBoard {
     }
 
     @Override
-    public void executeMoveForPlayingColor(Color playingColor, GameMove move) {
+    public List<GameMove> executeMoveForPlayingColor(Color playingColor, GameMove move) {
         if (isGameComplete()) {
             throw new IllegalGameActionException("Game is complete. No more moves allowed");
         }
@@ -111,16 +111,23 @@ public final class BasicGameBoard implements GameBoard {
         final var sourceColumn = columnsById.get(move.getFrom());
         final var targetColumn = columnsById.get(move.getTo());
 
-        if (targetColumn.getPieceColor() == currentPlayingColor.complement()) {
-            suspendedByColor.get(currentPlayingColor.complement()).addPiece(currentPlayingColor.complement());
+        final var executedMoves = new ArrayList<GameMove>();
+        final var opponentColor = currentPlayingColor.complement();
+
+        if (targetColumn.getPieceColor() == opponentColor) {
+            final var suspendedColumn = suspendedByColor.get(opponentColor);
+            suspendedColumn.addPiece(opponentColor);
             targetColumn.removePiece();
+            executedMoves.add(new GameMove(targetColumn.getId(), suspendedColumn.getId()));
         }
 
         targetColumn.addPiece(currentPlayingColor);
         sourceColumn.removePiece();
+        executedMoves.add(move);
 
         remainingDiceValues.remove(optionalDiceValueUsed.get());
         updatePossibleMoves();
+        return executedMoves;
     }
 
     private void updatePossibleMoves() {
