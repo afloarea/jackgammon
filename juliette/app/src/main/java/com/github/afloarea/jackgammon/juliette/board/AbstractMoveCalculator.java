@@ -1,20 +1,24 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public abstract class AbstractMoveCalculator implements MoveCalculator {
 
-    private final ColumnSupplier columnSupplier;
+    protected final ColumnSequence columnSequence;
+    private final Map<Integer, Integer> usageByDiceValue = new HashMap<>();
 
-    protected AbstractMoveCalculator(ColumnSupplier columnSupplier) {
-        this.columnSupplier = columnSupplier;
+    protected AbstractMoveCalculator(ColumnSequence columnSequence) {
+        this.columnSequence = columnSequence;
     }
 
     @Override
-    public final Stream<Move> computeMovesFromStart(int startIndex, List<Integer> availableHops, Direction direction) {
-        reset();
+    public void init() {
+        usageByDiceValue.clear();
+    }
+
+    @Override
+    public Stream<Move> computeMovesFromStart(int startIndex, List<Integer> availableHops, Direction direction) {
         if (availableHops.isEmpty()) {
             return Stream.empty();
         }
@@ -23,27 +27,27 @@ public abstract class AbstractMoveCalculator implements MoveCalculator {
 
         int index = startIndex;
         for (int hop : availableHops) {
-            if (!canHop(index, hop, direction)) {
+            final int newIndex = index + hop * direction.getSign();
+            if (!canMoveTo(newIndex, direction)) {
                 return moves.stream();
             }
+
             usedHops.add(hop);
-            final int newIndex = computeNewIndex(index, hop, direction);
             moves.add(new Move(
-                    columnSupplier.getColumn(startIndex, direction),
-                    columnSupplier.getColumn(newIndex, direction),
+                    columnSequence.getColumn(startIndex, direction),
+                    columnSequence.getColumn(Math.min(25, newIndex), direction),
                     new ArrayList<>(usedHops)));
             index = newIndex;
+            usageByDiceValue.compute(hop, (key, value) -> value == null ? 1 : value + 1);
         }
 
         return moves.stream();
     }
 
-    protected void reset() {}
+    protected abstract boolean canMoveTo(int to, Direction direction);
 
-    protected int computeNewIndex(int start, int hop, Direction direction) {
-        return start + hop * direction.getSign();
+    @Override
+    public final Map<Integer, Integer> getUsageByDiceValue() {
+        return Map.copyOf(usageByDiceValue);
     }
-
-    protected abstract boolean canHop(int start, int hop, Direction direction);
-
 }

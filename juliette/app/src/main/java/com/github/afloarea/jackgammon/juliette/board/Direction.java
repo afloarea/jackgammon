@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
 public enum Direction {
-    FORWARD(1), BACKWARD(-1);
+    FORWARD(1), BACKWARD(-1), NONE(0);
 
     private final int sign;
 
