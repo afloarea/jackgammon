@@ -14,6 +14,6 @@ public final class StrictCollectMoveCalculator extends AbstractMoveCalculator {
         if (to == 25) {
             return true;
         }
-        return !columnSequence.getColumn(to, direction).isBlockedForDirection(direction);
+        return columnSequence.getColumn(to, direction).isClearForDirection(direction);
     }
 }

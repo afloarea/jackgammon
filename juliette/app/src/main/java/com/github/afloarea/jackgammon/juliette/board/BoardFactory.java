@@ -2,13 +2,20 @@ package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.Color;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public final class BoardFactory {
+    private static final String[][] BOARD_TEMPLATE = {
+            "ABCDEFGHIJKL".split(""),
+            new StringBuilder("MNOPQRSTUVWX").reverse().toString().split("")
+    };
     public static final Map<Integer, String> IDS_BY_POSITION;
 
     static {
@@ -29,6 +36,23 @@ public final class BoardFactory {
 
     public static BasicGameBoard build(int[] upper, int[] lower) {
         return build(upper, lower, 0, 0, 0, 0);
+    }
+
+    public static AdvancedGameBoard build(int[][] values,
+                                          int suspendedForward, int suspendedBackwards, int collectedForward, int collectedBackwards) {
+
+        final ColumnSequence columnSequence = new ColumnArrangement(values,
+                suspendedForward, suspendedBackwards, collectedForward, collectedBackwards);
+
+        return new AdvancedGameBoard(columnSequence);
+    }
+
+    public static AdvancedGameBoard build(int[][] values) {
+
+        final ColumnSequence columnSequence = new ColumnArrangement(values,
+                0, 0, 0, 0);
+
+        return new AdvancedGameBoard(columnSequence);
     }
 
     public static BasicGameBoard build(int[] upper, int[] lower,
@@ -72,5 +96,30 @@ public final class BoardFactory {
 
     private static String mapColumnToString(BoardColumn column) {
         return String.format("%3s", column.getPieceCount() + column.getPieceColor().getSymbol());
+    }
+
+    public static Deque<BoardColumn> translateToColumns(int[][] values) {
+        final int[] upper = values[0];
+        final int[] lower = reverse(values[1]);
+
+        final Stream<BoardColumn> upperStream = IntStream.range(0, upper.length)
+                .mapToObj(index ->
+                        new BoardColumn(Math.abs(upper[index]), Direction.ofSign(upper[index]), BOARD_TEMPLATE[0][index]));
+
+        final Stream<BoardColumn> lowerStream = IntStream.range(0, lower.length)
+                .mapToObj(index ->
+                        new BoardColumn(Math.abs(lower[index]), Direction.ofSign(lower[index]), BOARD_TEMPLATE[1][index]));
+
+        return Stream.concat(upperStream, lowerStream)
+                .collect(Collectors.toCollection(ArrayDeque::new));
+    }
+
+    private static int[] reverse(int[] array) {
+        final int[] result = new int[array.length];
+        for (int index = 0; index < array.length; index++) {
+            int complement = array.length - 1 - index;
+            result[index] = array[complement];
+        }
+        return result;
     }
 }

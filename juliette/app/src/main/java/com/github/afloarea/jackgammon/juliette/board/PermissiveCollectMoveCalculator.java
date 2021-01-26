@@ -20,7 +20,7 @@ public final class PermissiveCollectMoveCalculator extends AbstractMoveCalculato
     @Override
     protected boolean canMoveTo(int to, Direction direction) {
         if (to < 25) {
-            return !columnSequence.getColumn(to, direction).isBlockedForDirection(direction);
+            return columnSequence.getColumn(to, direction).isClearForDirection(direction);
         }
         if (checkedOnce) {
             return false;

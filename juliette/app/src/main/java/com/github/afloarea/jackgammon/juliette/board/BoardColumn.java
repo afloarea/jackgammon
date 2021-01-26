@@ -23,6 +23,10 @@ public final class BoardColumn {
         this.id = id;
     }
 
+    public BoardColumn(int pieceCount, Direction elementDirection, String id) {
+        this(pieceCount, Constants.COLORS_BY_DIRECTION.get(elementDirection), id);
+    }
+
     public int getPieceCount() {
         return pieceCount;
     }
@@ -41,6 +45,10 @@ public final class BoardColumn {
 
     public boolean isEmpty() {
         return this.pieceColor == Color.NONE;
+    }
+
+    public void removeElement() {
+        removePiece();
     }
 
     public void removePiece() {
@@ -66,6 +74,10 @@ public final class BoardColumn {
         pieceCount++;
     }
 
+    public void addElement(Direction elementDirection) {
+        addPiece(Constants.COLORS_BY_DIRECTION.get(elementDirection));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,12 +92,10 @@ public final class BoardColumn {
     }
 
     public Direction getMovingDirectionOfElements() {
-        return Direction.FORWARD;
+        return Constants.DIRECTION_BY_COLOR.get(pieceColor);
     }
 
-    public int getPosition() {
-        return 0;
+    public boolean isClearForDirection(Direction direction) {
+        return canAccept(Constants.COLORS_BY_DIRECTION.get(direction));
     }
-
-    public boolean isBlockedForDirection(Direction direction) {}
 }

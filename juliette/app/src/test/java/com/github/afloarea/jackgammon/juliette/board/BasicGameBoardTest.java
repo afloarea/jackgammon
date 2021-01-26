@@ -10,7 +10,8 @@ import java.util.Set;
 
 class BasicGameBoardTest {
 
-    @Test void boardHandlesSimpleRoll() {
+    @Test
+    void boardHandlesSimpleRoll() {
         final var board = GameBoard.buildNewBoard();
         final var diceResult = new DiceResult(2, 1);
 
@@ -21,7 +22,8 @@ class BasicGameBoardTest {
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
 
-    @Test void boardHandlesDouble() {
+    @Test
+    void boardHandlesDouble() {
         final var board = GameBoard.buildNewBoard();
         final var diceResult = new DiceResult(2, 2);
 
@@ -34,12 +36,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
 
-    @Test void testCanEnter() {
-        final var board = BoardFactory.build(
-                new int[] {-2, +2, +2, +2, +2, +2,  +5, -13, 0, 0, 0, 0},
-                new int[] {0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0 ,0},
-                1, 0, 0, 0
-        );
+    @Test
+    void testCanEnter() {
+        final var board = BoardFactory.build(new int[][]{
+                {-2, +2, +2, +2, +2, +2, +5, -13, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        }, 1, 0, 0, 0);
         final var diceResult = new DiceResult(1, 6);
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
@@ -47,10 +49,12 @@ class BasicGameBoardTest {
         board.executeMoveForPlayingColor(Color.BLACK, buildEnter(Color.BLACK, 0));
     }
 
-    @Test void unableToEnter() {
-        final var board = BoardFactory.build(
-                new int[] {-2, +2, +2, +2, +2, +2,  +5, -13, 0, 0, 0, 0},
-                new int[] {0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0 ,0},
+    @Test
+    void unableToEnter() {
+        final var board = BoardFactory.build(new int[][]{
+                        {-2, +2, +2, +2, +2, +2, +5, -13, 0, 0, 0, 0},
+                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                },
                 1, 0, 0, 0
         );
         final var diceResult = new DiceResult(6, 6);
@@ -59,10 +63,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
 
-    @Test void testSuspend() {
-        final var board = BoardFactory.build(
-                new int[]{-2, 0, 0, 0, 1, 4,   0, 3, 0, 0, 1, -5},
-                new int[]{+2, 0, 0, 0, 0,-5,   0,-3, 0, 0, 0,  4}
+    @Test
+    void testSuspend() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{-2, 0, 0, 0, 1, 4, 0, 3, 0, 0, 1, -5},
+                        new int[]{+2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 4}
+                }
         );
         final var diceResult = new DiceResult(4, 1);
 
@@ -77,10 +83,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
 
-    @Test void testEnterWithSuspend() {
-        final var board = BoardFactory.build(
-                new int[] { 2, 2, 1, 2, 2,  2,   0, 2, 0, 0, 0,  0},
-                new int[] {-3, 2, 0, 0, 0, -5,   0, 0, 0, 0, 0, -5},
+    @Test
+    void testEnterWithSuspend() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{2, 2, 1, 2, 2, 2, 0, 2, 0, 0, 0, 0},
+                        new int[]{-3, 2, 0, 0, 0, -5, 0, 0, 0, 0, 0, -5}
+                },
                 2, 0, 0, 0
         );
         final var diceResult = new DiceResult(4, 3);
@@ -98,10 +106,12 @@ class BasicGameBoardTest {
         Assertions.assertFalse(board.currentPlayingColorFinishedTurn());
     }
 
-    @Test void testGameWon() {
-        final var board = BoardFactory.build(
-                new int[] {1, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0},
-                new int[] {0, -1, -1, 0, 0, 0,  0, 0, 0, 0, 0, 0},
+    @Test
+    void testGameWon() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                        new int[]{0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                },
                 0, 0, 13, 14
         );
         final var diceResult = new DiceResult(3, 2);
@@ -114,10 +124,12 @@ class BasicGameBoardTest {
         Assertions.assertEquals(Color.BLACK, board.getWinningColor());
     }
 
-    @Test void collectWithHigh() {
-        final var board = BoardFactory.build(
-                new int[] {4, 4, 4, 3, 0, 0,    0, 0, 0, 0, 0, 0},
-                new int[] {-5, -2, -4, -4, 0, 0,  0, 0, 0, 0, 0, 0},
+    @Test
+    void collectWithHigh() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+                        new int[]{-5, -2, -4, -4, 0, 0, 0, 0, 0, 0, 0, 0}
+                },
                 0, 0, 0, 0
         );
         final var diceResult = new DiceResult(6, 5);
@@ -126,10 +138,12 @@ class BasicGameBoardTest {
         Assertions.assertEquals(Set.of(buildCollect(Color.BLACK, 20)), board.getPossibleMovesForCurrentPlayingColor());
     }
 
-    @Test void testMoveAndCollect() {
-        final var board = BoardFactory.build(
-                new int[] {2, 2, 0, 1, 1, 7,    0, 0, 0, 0, 0, 0},
-                new int[] {0, 0, -1, -5, -2, -6,  0, -1, 0, 0, 0, 0},
+    @Test
+    void testMoveAndCollect() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{2, 2, 0, 1, 1, 7, 0, 0, 0, 0, 0, 0},
+                        new int[]{0, 0, -1, -5, -2, -6, 0, -1, 0, 0, 0, 0}
+                },
                 0, 0, 0, 2
         );
         final var diceResult = new DiceResult(3, 5);
@@ -142,10 +156,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().isEmpty());
     }
 
-    @Test void testForcedMove() {
-        final var board = BoardFactory.build(
-                new int[] {-1, 2, 2, 0, 2, 2,    0, 0, 0, 2, 0, 0},
-                new int[] {0, 0, 0, -1, 0, 0,  0, 0, 0, 0, 0, 0},
+    @Test
+    void testForcedMove() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{-1, 2, 2, 0, 2, 2, 0, 0, 0, 2, 0, 0},
+                        new int[]{0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0}
+                },
                 0, 0, 13, 5
         );
         final var diceResult = new DiceResult(3, 6);
@@ -155,10 +171,12 @@ class BasicGameBoardTest {
         Assertions.assertEquals(2, board.getPossibleMovesForCurrentPlayingColor().size());
     }
 
-    @Test void testNonForcedMove() {
-        final var board = BoardFactory.build(
-                new int[] {2, 4, 3, 0, 0, 0,    0, 0, 0, 0, 0, -1},
-                new int[] {-2, -3, -2, -2, -2, -3,  0, 0, 0, 0, 0, 1},
+    @Test
+    void testNonForcedMove() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{2, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, -1},
+                        new int[]{-2, -3, -2, -2, -2, -3, 0, 0, 0, 0, 0, 1}
+                },
                 0, 0, 0, 5
         );
         final var diceResult = new DiceResult(6, 1);
@@ -169,10 +187,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(availableMoves.contains(buildMove(11, 12)));
     }
 
-    @Test void testNonForcedWithCollect() {
-        final var board = BoardFactory.build(
-                new int[] {6, 2, 2, 2, 2, 0,    0, 0, 0, 0, 0, 0},
-                new int[] {-2, -4, 0, 1, -3, -5,  -1, 0, 0, 0, 0, 0},
+    @Test
+    void testNonForcedWithCollect() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{6, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0},
+                        new int[]{-2, -4, 0, 1, -3, -5, -1, 0, 0, 0, 0, 0}
+                },
                 0, 0, 0, 0
         );
         final var diceResult = new DiceResult(2, 1);
@@ -183,10 +203,12 @@ class BasicGameBoardTest {
         Assertions.assertTrue(availableMoves.contains(buildCollect(Color.BLACK, 22)));
     }
 
-    @Test void testNonForceWithCollect2() {
-        final var board = BoardFactory.build(
-                new int[] {6, 2, 2, 2, 2, 0,    0, 0, 0, 0, 0, 0},
-                new int[] {-2, -9, 0, 1, -3, 0,  0, -1, 0, 0, 0, 0},
+    @Test
+    void testNonForceWithCollect2() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{6, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0},
+                        new int[]{-2, -9, 0, 1, -3, 0, 0, -1, 0, 0, 0, 0}
+                },
                 0, 0, 0, 0
         );
         final var diceResult = new DiceResult(6, 2);

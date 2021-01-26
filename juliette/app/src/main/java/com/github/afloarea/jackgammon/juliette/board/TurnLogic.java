@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class TurnLogic {
+public final class TurnLogic {
     private final ColumnSequence columnSequence;
 
     private final MoveCalculator basicMoveCalculator;
@@ -58,7 +58,7 @@ public class TurnLogic {
                 .collect(Collectors.toList());
 
         final var firstColumn = availableColumns.get(0);
-        if (columnSequence.isSuspendColumn(firstColumn, currentDirection)) {
+        if (isSuspendColumn(firstColumn)) {
             final var sourceStream = firstColumn.getPieceCount() > 1
                     ? currentDice.stream().distinct().map(Collections::singletonList)
                     : Stream.of(currentDice, reversed);
@@ -73,13 +73,19 @@ public class TurnLogic {
         }
 
         final Stream<Move> farthestColumnMoves = Stream.of(currentDice, reversed)
-                .flatMap(hops -> computePermissive(firstColumn, hops, currentDirection));
+                .flatMap(hops -> computePermissive(firstColumn, hops, currentDirection))
+                .distinct();
 
+        final var collectableCalculator = uncollectablePieces == 0 ? strictCalculator : basicMoveCalculator;
         final Stream<Move> potentiallyCollectableColumnMoves = Stream.of(currentDice, reversed)
                 .flatMap(hops -> availableColumns.subList(1, availableColumns.size()).stream()
-                        .flatMap(column -> computeStrict(column, hops, currentDirection)));
+                        .flatMap(column -> computeMoves(collectableCalculator, column, hops, currentDirection)));
 
         return Stream.concat(farthestColumnMoves, potentiallyCollectableColumnMoves);
+    }
+
+    private boolean isSuspendColumn(BoardColumn column) {
+        return Objects.equals(column.getId(), columnSequence.getSuspendedColumn(currentDirection).getId());
     }
 
     private Stream<Move> computeMoves(

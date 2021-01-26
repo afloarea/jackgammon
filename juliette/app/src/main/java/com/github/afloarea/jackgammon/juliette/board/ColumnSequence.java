@@ -10,9 +10,11 @@ public interface ColumnSequence {
 
     int getUncollectableCount(Direction direction);
 
-    boolean isSuspendColumn(BoardColumn column, Direction direction);
-
     int getColumnIndex(BoardColumn column, Direction direction);
 
     BoardColumn getColumnById(String columnId);
+
+    BoardColumn getSuspendedColumn(Direction direction);
+
+    BoardColumn getCollectColumn(Direction direction);
 }
