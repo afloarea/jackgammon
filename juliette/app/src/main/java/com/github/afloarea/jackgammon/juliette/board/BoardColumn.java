@@ -78,4 +78,14 @@ public final class BoardColumn {
     public int hashCode() {
         return Objects.hash(pieceCount, pieceColor, id);
     }
+
+    public Direction getMovingDirectionOfElements() {
+        return Direction.FORWARD;
+    }
+
+    public int getPosition() {
+        return 0;
+    }
+
+    public boolean isBlockedForDirection(Direction direction) {}
 }
