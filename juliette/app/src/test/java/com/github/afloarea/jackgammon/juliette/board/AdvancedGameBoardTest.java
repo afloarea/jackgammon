@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-class BasicGameBoardTest {
+class AdvancedGameBoardTest {
 
     @Test
     void boardHandlesSimpleRoll() {
@@ -215,6 +215,21 @@ class BasicGameBoardTest {
 
         board.updateDiceForPlayingColor(Color.BLACK, diceResult);
         Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildMove(16, 18)));
+    }
+
+    @Test
+    void testCompositeMove() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{2, 0, 0, 0, 0, 5, 0, 2, -1, 0, -1, -5},
+                        new int[]{0, 0, 0, 0, -2, -4, 2, -2, 0, 0, 0, 4}
+                },
+                0, 0, 0, 0
+        );
+        final var diceResult = new DiceResult(6, 5);
+
+        board.updateDiceForPlayingColor(Color.WHITE, diceResult);
+        board.executeMoveForPlayingColor(Color.WHITE, buildMove(12, 1));
+        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
     }
 
     private GameMove buildMove(int from, int to) {

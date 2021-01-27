@@ -32,8 +32,8 @@ public final class DefaultMoveExecutor implements MoveExecutor {
         final var splitMoves = new ArrayList<GameMove>();
         int fromIndex = columns.getColumnIndex(move.getSource(), direction);
 
-        for (int index = 0; index < move.getDistances().size() - 1; index++) {
-            final int newIndex = fromIndex + direction.getSign() * move.getDistances().get(index);
+        for (int distance : move.getDistances()) {
+            final int newIndex = fromIndex + distance;
             splitMoves.add(new GameMove(
                     columns.getColumn(fromIndex, direction).getId(),
                     columns.getColumn(newIndex, direction).getId()));
