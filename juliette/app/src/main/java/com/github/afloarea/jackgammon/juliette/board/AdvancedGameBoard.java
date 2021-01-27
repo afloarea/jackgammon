@@ -10,23 +10,23 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class AdvancedGameBoard implements GameBoard {
-    private static final Map<Color, Direction> DIRECTIONS_BY_COLOR = Map.of(
-            Color.BLACK, Direction.FORWARD,
-            Color.WHITE, Direction.BACKWARD,
-            Color.NONE, Direction.NONE);
+import static com.github.afloarea.jackgammon.juliette.board.Constants.DIRECTION_BY_COLOR;
+
+public final class AdvancedGameBoard implements GameBoard {
 
     private final Map<GameMove, Move> movesMap = new HashMap<>();
     private Color currentPlayingColor = Color.NONE;
 
     private final List<Integer> remainingDiceValues = new ArrayList<>();
 
-    private final TurnLogic turnLogic;
     private final ColumnSequence columns;
+    private final DefaultMoveProvider defaultMoveProvider;
+    private final MoveExecutor moveExecutor;
 
     public AdvancedGameBoard(ColumnSequence columns) {
         this.columns = columns;
-        this.turnLogic = new TurnLogic(columns);
+        this.defaultMoveProvider = new DefaultMoveProvider(columns);
+        this.moveExecutor = new DefaultMoveExecutor(columns);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AdvancedGameBoard implements GameBoard {
 
     private void updatePossibleMoves() {
         final var computedMoves =
-                turnLogic.streamPossibleMoves(remainingDiceValues, DIRECTIONS_BY_COLOR.get(currentPlayingColor))
+                defaultMoveProvider.streamPossibleMoves(remainingDiceValues, DIRECTION_BY_COLOR.get(currentPlayingColor))
                         .collect(Collectors.toMap(
                                 move -> new GameMove(move.getSource().getId(), move.getTarget().getId()),
                                 Function.identity()));
@@ -91,50 +91,9 @@ public class AdvancedGameBoard implements GameBoard {
 
         final Move selectedMove = movesMap.get(move);
         remainingDiceValues.removeAll(selectedMove.getDistances());
-        final var executedMoves = split(selectedMove)
-                .flatMap(this::performBasicMove)
-                .collect(Collectors.toList());
+        final var executedMoves = moveExecutor.executeMove(selectedMove, DIRECTION_BY_COLOR.get(currentPlayingColor));
         updatePossibleMoves(); // update after executing the moves
         return executedMoves;
-    }
-
-    Stream<GameMove> split(Move move) {
-        final var currentDirection = DIRECTIONS_BY_COLOR.get(currentPlayingColor);
-        final var splitMoves = new ArrayList<GameMove>();
-        int fromIndex = columns.getColumnIndex(move.getSource(), currentDirection);
-
-        for (int index = 0; index < move.getDistances().size() - 1; index++) {
-            final int newIndex = fromIndex + currentDirection.getSign() * move.getDistances().get(index);
-            splitMoves.add(new GameMove(
-                    columns.getColumn(fromIndex, currentDirection).getId(),
-                    columns.getColumn(newIndex, currentDirection).getId()));
-            fromIndex = newIndex;
-        }
-
-        splitMoves.add(new GameMove(columns.getColumn(fromIndex, currentDirection).getId(), move.getTarget().getId()));
-        return splitMoves.stream();
-    }
-
-    Stream<GameMove> performBasicMove(GameMove move) {
-        final var sourceColumn = columns.getColumnById(move.getFrom());
-        final var targetColumn = columns.getColumnById(move.getTo());
-
-        final var executedMoves = new ArrayList<GameMove>();
-        final var oppositeDirection = DIRECTIONS_BY_COLOR.get(currentPlayingColor.complement());
-        final var currentDirection = DIRECTIONS_BY_COLOR.get(currentPlayingColor);
-
-        if (targetColumn.getMovingDirectionOfElements() == oppositeDirection) {
-            final var suspendColumn = columns.getSuspendedColumn(oppositeDirection);
-            suspendColumn.addElement(oppositeDirection);
-            targetColumn.removeElement();
-            executedMoves.add(new GameMove(targetColumn.getId(), suspendColumn.getId()));
-        }
-
-        targetColumn.addElement(currentDirection);
-        sourceColumn.removeElement();
-        executedMoves.add(move);
-
-        return executedMoves.stream();
     }
 
     @Override
@@ -151,7 +110,7 @@ public class AdvancedGameBoard implements GameBoard {
 
     @Override
     public Color getWinningColor() {
-        return DIRECTIONS_BY_COLOR.entrySet().stream()
+        return DIRECTION_BY_COLOR.entrySet().stream()
                 .filter(entry -> columns.getCollectColumn(entry.getValue()).getPieceCount() == 15)
                 .map(Map.Entry::getKey)
                 .findAny()

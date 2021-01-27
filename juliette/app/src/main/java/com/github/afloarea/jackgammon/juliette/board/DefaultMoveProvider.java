@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class TurnLogic {
+public final class DefaultMoveProvider implements PossibleMovesProvider {
     private final ColumnSequence columnSequence;
 
     private final MoveCalculator basicMoveCalculator;
@@ -14,13 +14,14 @@ public final class TurnLogic {
     private List<Integer> currentDice;
     private Direction currentDirection;
 
-    public TurnLogic(ColumnSequence columnSequence) {
+    public DefaultMoveProvider(ColumnSequence columnSequence) {
         this.columnSequence = columnSequence;
         this.basicMoveCalculator = new BasicMoveCalculator(columnSequence);
         this.permissiveCalculator = new PermissiveCollectMoveCalculator(columnSequence);
         this.strictCalculator = new StrictCollectMoveCalculator(columnSequence);
     }
 
+    @Override
     public Stream<Move> streamPossibleMoves(List<Integer> dice, Direction direction) {
         this.currentDice = dice;
         this.currentDirection = direction;

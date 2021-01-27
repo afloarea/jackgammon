@@ -3,7 +3,7 @@ package com.github.afloarea.jackgammon.juliette.board;
 import java.util.List;
 import java.util.Objects;
 
-public class Move {
+public final class Move {
 
     private final BoardColumn source;
     private final BoardColumn target;
@@ -38,5 +38,10 @@ public class Move {
     @Override
     public int hashCode() {
         return Objects.hash(source.getId(), target.getId());
+    }
+
+    @Override
+    public String toString() {
+        return "M[" + source.getId() + " -> " + target.getId() + "|" + distances.toString() + "]";
     }
 }
