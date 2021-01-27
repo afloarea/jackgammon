@@ -101,7 +101,7 @@ class BasicGameBoardTest {
         final var secondDice = new DiceResult(6, 2);
 
         board.updateDiceForPlayingColor(Color.WHITE, secondDice);
-        Assertions.assertEquals(Set.of(buildEnter(Color.WHITE, 22)), board.getPossibleMovesForCurrentPlayingColor());
+        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildEnter(Color.WHITE, 22)));
         board.executeMoveForPlayingColor(Color.WHITE, buildEnter(Color.WHITE, 22));
         Assertions.assertFalse(board.currentPlayingColorFinishedTurn());
     }

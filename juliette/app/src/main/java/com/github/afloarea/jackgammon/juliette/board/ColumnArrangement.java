@@ -63,6 +63,7 @@ public final class ColumnArrangement implements ColumnSequence {
         forward.addFirst(suspendForward);
         forward.addLast(collectForward);
 
+        Collections.reverse(base);
         final var backward = new ArrayDeque<>(base);
         final var suspendBackwards = new BoardColumn(backwardSuspended, Direction.BACKWARD, "SW");
         final var collectBackwards = new BoardColumn(backwardCollected, Direction.BACKWARD, "CW");

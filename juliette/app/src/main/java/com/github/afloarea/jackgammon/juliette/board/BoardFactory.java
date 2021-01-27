@@ -2,10 +2,7 @@ package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.Color;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -98,7 +95,7 @@ public final class BoardFactory {
         return String.format("%3s", column.getPieceCount() + column.getPieceColor().getSymbol());
     }
 
-    public static Deque<BoardColumn> translateToColumns(int[][] values) {
+    public static List<BoardColumn> translateToColumns(int[][] values) {
         final int[] upper = values[0];
         final int[] lower = reverse(values[1]);
 
@@ -111,7 +108,7 @@ public final class BoardFactory {
                         new BoardColumn(Math.abs(lower[index]), Direction.ofSign(lower[index]), BOARD_TEMPLATE[1][index]));
 
         return Stream.concat(upperStream, lowerStream)
-                .collect(Collectors.toCollection(ArrayDeque::new));
+                .collect(Collectors.toList());
     }
 
     private static int[] reverse(int[] array) {

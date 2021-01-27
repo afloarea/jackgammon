@@ -10,7 +10,6 @@ public final class TurnLogic {
     private final MoveCalculator basicMoveCalculator;
     private final MoveCalculator permissiveCalculator;
     private final MoveCalculator strictCalculator;
-    private final List<MoveCalculator> calculators;
 
     private List<Integer> currentDice;
     private Direction currentDirection;
@@ -20,13 +19,12 @@ public final class TurnLogic {
         this.basicMoveCalculator = new BasicMoveCalculator(columnSequence);
         this.permissiveCalculator = new PermissiveCollectMoveCalculator(columnSequence);
         this.strictCalculator = new StrictCollectMoveCalculator(columnSequence);
-        calculators = List.of(basicMoveCalculator, permissiveCalculator, strictCalculator);
     }
 
     public Stream<Move> streamPossibleMoves(List<Integer> dice, Direction direction) {
         this.currentDice = dice;
         this.currentDirection = direction;
-        return filterMovesToMaximizeDiceUsed(computePossibleMoves());
+        return filterMovesToMaximizeDiceUsed(computePossibleMoves().distinct());
     }
 
     private Stream<Move> computePossibleMoves() {
@@ -45,7 +43,6 @@ public final class TurnLogic {
         // if all but one are there, then attempt to collect the piece after advancing as much as possible
 
         //------------------------------------
-        calculators.forEach(MoveCalculator::init);
 
         final var reversed = new ArrayList<Integer>();
         if (isSimpleDice(currentDice)) {
@@ -73,8 +70,7 @@ public final class TurnLogic {
         }
 
         final Stream<Move> farthestColumnMoves = Stream.of(currentDice, reversed)
-                .flatMap(hops -> computePermissive(firstColumn, hops, currentDirection))
-                .distinct();
+                .flatMap(hops -> computePermissive(firstColumn, hops, currentDirection));
 
         final var collectableCalculator = uncollectablePieces == 0 ? strictCalculator : basicMoveCalculator;
         final Stream<Move> potentiallyCollectableColumnMoves = Stream.of(currentDice, reversed)
@@ -99,9 +95,6 @@ public final class TurnLogic {
     private Stream<Move> computePermissive(BoardColumn from, List<Integer> hops, Direction direction) {
         return computeMoves(permissiveCalculator, from, hops, direction);
     }
-    private Stream<Move> computeStrict(BoardColumn from, List<Integer> hops, Direction direction) {
-        return computeMoves(strictCalculator, from, hops, direction);
-    }
 
     private Stream<Move> filterMovesToMaximizeDiceUsed(
             Stream<Move> originalMoves) {
@@ -110,30 +103,37 @@ public final class TurnLogic {
             return originalMoves;
         }
 
-        final Map<Integer, Integer> diceUsage = getDiceUsage(currentDice);
+        final Map<List<Integer>, List<Move>> movesByDice = originalMoves.collect(Collectors.groupingBy(Move::getDistances));
         final int firstDice = currentDice.get(0);
         final int secondDice = currentDice.get(1);
 
-        if (diceUsage.get(firstDice) == 1 && diceUsage.get(secondDice) != 1) {
-            return originalMoves.filter(move -> move.getDistances().contains(firstDice));
-        } else if (diceUsage.get(secondDice) == 1 && diceUsage.get(firstDice) != 1) {
-            return originalMoves.filter(move -> move.getDistances().contains(secondDice));
+        final var firstDiceMoves = findMovesFromColumnsWithSinglePiece(movesByDice.get(List.of(firstDice)));
+        final var secondDiceMoves = findMovesFromColumnsWithSinglePiece(movesByDice.get(List.of(secondDice)));
+
+        final Stream<Move> moves = movesByDice.values().stream().flatMap(Collection::stream);
+
+        if (firstDiceMoves.size() == 1 && secondDiceMoves.size() != 1) {
+            final var sourceColumnId = firstDiceMoves.get(0).getSource().getId();
+            return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
+                    || move.getDistances().contains(firstDice));
+
+        } else if (firstDiceMoves.size() != 1 && secondDiceMoves.size() == 1) {
+            final var sourceColumnId = secondDiceMoves.get(0).getSource().getId();
+            return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
+                    || move.getDistances().contains(secondDice));
         }
 
-        return originalMoves;
+        return moves;
     }
 
     private boolean isSimpleDice(List<Integer> dice) {
         return dice.size() == 2 && !dice.get(0).equals(dice.get(1));
     }
 
-    private Map<Integer, Integer> getDiceUsage(List<Integer> dice) {
-        final var result = calculators.stream()
-                .map(MoveCalculator::getUsageByDiceValue)
-                .flatMap(usage -> usage.entrySet().stream())
-                .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
-
-        dice.forEach(diceValue -> result.putIfAbsent(diceValue, 0));
-        return result;
+    private List<Move> findMovesFromColumnsWithSinglePiece(List<Move> original) {
+        if (original == null) {
+            return Collections.emptyList();
+        }
+        return original.stream().filter(move -> move.getSource().getPieceCount() == 1).collect(Collectors.toList());
     }
 }
