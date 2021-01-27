@@ -129,8 +129,7 @@ class AdvancedGameBoardTest {
         final var board = BoardFactory.build(new int[][]{
                         new int[]{4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
                         new int[]{-5, -2, -4, -4, 0, 0, 0, 0, 0, 0, 0, 0}
-                },
-                0, 0, 0, 0
+                }
         );
         final var diceResult = new DiceResult(6, 5);
 
@@ -230,6 +229,22 @@ class AdvancedGameBoardTest {
         board.updateDiceForPlayingColor(Color.WHITE, diceResult);
         board.executeMoveForPlayingColor(Color.WHITE, buildMove(12, 1));
         Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+    }
+
+    @Test
+    void testCompositeNoCollect() {
+        final var board = BoardFactory.build(new int[][]{
+                        new int[]{0, 0, 3, 3, 2, 4, 3, 0, 0, 0, 0, 0},
+                        new int[]{0, -5, -2, -1, -3, -3, 0, -1, 0, 0, 0, 0}
+                }
+        );
+        final var diceResult = new DiceResult(3, 3);
+
+        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+
+        Assertions.assertTrue(
+                board.getPossibleMovesForCurrentPlayingColor().stream().noneMatch(move -> move.getTo().equals("CB")));
+
     }
 
     private GameMove buildMove(int from, int to) {

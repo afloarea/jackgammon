@@ -1,6 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
 import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
+import com.github.afloarea.jackgammon.juliette.board.Constants;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 import com.github.afloarea.jackgammon.juliette.board.Move;
@@ -68,7 +69,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             return sourceStream.flatMap(hops -> computeBasic(firstColumn, hops, currentDirection));
         }
 
-        final int uncollectablePieces = columnSequence.getUncollectableCount(currentDirection);
+        final int uncollectablePieces = columnSequence.countPiecesUpToIndex(Constants.HOME_START, currentDirection);
         if (uncollectablePieces > 1) { // there can be no single piece collected
             return Stream.of(currentDice, reversed)
                     .flatMap(hops -> availableColumns.stream()

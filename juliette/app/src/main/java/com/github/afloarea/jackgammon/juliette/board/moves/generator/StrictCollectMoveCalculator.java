@@ -16,7 +16,7 @@ public final class StrictCollectMoveCalculator extends AbstractMoveCalculator {
     }
 
     @Override
-    protected boolean canMoveTo(int to, Direction direction) {
+    protected boolean canPerformMove(int from, int to, Direction direction) {
         if (to > COLLECT_INDEX) {
             return false;
         }

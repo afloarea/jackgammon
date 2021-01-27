@@ -30,7 +30,7 @@ public final class PermissiveCollectMoveCalculator extends AbstractMoveCalculato
     }
 
     @Override
-    protected boolean canMoveTo(int to, Direction direction) {
+    protected boolean canPerformMove(int from, int to, Direction direction) {
         if (to < Constants.COLLECT_INDEX) {
             return columnSequence.getColumn(to, direction).isClearForDirection(direction);
         }
@@ -38,6 +38,6 @@ public final class PermissiveCollectMoveCalculator extends AbstractMoveCalculato
             return false;
         }
         checkedOnce = true;
-        return true;
+        return to == Constants.COLLECT_INDEX || columnSequence.countPiecesUpToIndex(from, direction) <= 1;
     }
 }

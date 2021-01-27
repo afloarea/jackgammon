@@ -29,7 +29,7 @@ public abstract class AbstractMoveCalculator implements MoveCalculator {
         int index = startIndex;
         for (int hop : availableHops) {
             final int newIndex = index + hop;
-            if (!canMoveTo(newIndex, direction)) {
+            if (!canPerformMove(index, newIndex, direction)) {
                 return moves.stream();
             }
 
@@ -46,9 +46,10 @@ public abstract class AbstractMoveCalculator implements MoveCalculator {
 
     /**
      * Check whether a piece can be moved to a column.
-     * @param to the column
+     * @param from the source column
+     * @param to the target column
      * @param direction the direction
      * @return whether or not a piece can be moved
      */
-    protected abstract boolean canMoveTo(int to, Direction direction);
+    protected abstract boolean canPerformMove(int from, int to, Direction direction);
 }

@@ -1,7 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.board.layout;
 
 import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
-import com.github.afloarea.jackgammon.juliette.board.Constants;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 
 import java.util.*;
@@ -10,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.github.afloarea.jackgammon.juliette.board.Constants.*;
+import static com.github.afloarea.jackgammon.juliette.board.Constants.COLLECT_INDEX;
 
 /**
  * A symbolic representation of the column within a backgammon game.
@@ -40,13 +39,12 @@ public final class ColumnArrangement implements ColumnSequence {
     }
 
     @Override
-    public int getUncollectableCount(Direction direction) {
-        final int sum = Arrays.stream(columnsByDirection.get(direction))
-                .skip(HOME_START).limit(HOME_AND_COLLECT)
+    public int countPiecesUpToIndex(int index, Direction direction) {
+        return Arrays.stream(columnsByDirection.get(direction))
+                .limit(index)
                 .filter(column -> column.getMovingDirectionOfElements() == direction)
                 .mapToInt(BoardColumn::getPieceCount)
                 .sum();
-        return Constants.PIECES_PER_PLAYER - sum;
     }
 
     @Override

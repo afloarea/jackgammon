@@ -14,7 +14,7 @@ public final class BasicMoveCalculator extends AbstractMoveCalculator {
     }
 
     @Override
-    protected boolean canMoveTo(int to, Direction direction) {
+    protected boolean canPerformMove(int from, int to, Direction direction) {
         return to < Constants.COLLECT_INDEX && columnSequence.getColumn(to, direction).isClearForDirection(direction);
     }
 }

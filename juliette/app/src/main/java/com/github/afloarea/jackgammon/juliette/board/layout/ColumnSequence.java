@@ -29,12 +29,13 @@ public interface ColumnSequence {
     Stream<BoardColumn> stream(Direction direction);
 
     /**
-     * Compute the amount of pieces that cannot be collected, either because they are not present in the home area,
-     * or they are suspended.
-     * @param direction the direction for which to compute
-     * @return the amount of pieces that cannot be collected
+     * Count the number of pieces up to (excluding) the column with the provided index.
+     * This also counts suspended pieces (at index 0).
+     * @param columnIndex the exclusive limit of the count
+     * @param direction the direction
+     * @return the number of pieces up to the provided index
      */
-    int getUncollectableCount(Direction direction);
+    int countPiecesUpToIndex(int columnIndex, Direction direction);
 
     /**
      * Retrieve the index of a column based on the direction.
