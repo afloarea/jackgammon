@@ -6,6 +6,8 @@ import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
 public class DiceResult {
+    private static final int MIN_DICE = 1;
+    private static final int MAX_DICE = 6;
     private static final Random RANDOM = new Random();
 
     private final int dice1;
@@ -29,8 +31,8 @@ public class DiceResult {
     }
 
     public static DiceResult generate() {
-        final int first = 1 + RANDOM.nextInt(6);
-        final int second = 1 + RANDOM.nextInt(6);
+        final int first = MIN_DICE + RANDOM.nextInt(MAX_DICE);
+        final int second = MIN_DICE + RANDOM.nextInt(MAX_DICE);
         return new DiceResult(Math.max(first, second), Math.min(first, second));
     }
 

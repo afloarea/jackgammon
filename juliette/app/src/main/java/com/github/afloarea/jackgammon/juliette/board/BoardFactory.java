@@ -1,6 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.Color;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnArrangement;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 
 import java.util.*;
 import java.util.function.Function;

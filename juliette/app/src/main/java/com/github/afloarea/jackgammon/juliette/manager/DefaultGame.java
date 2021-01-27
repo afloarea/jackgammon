@@ -3,10 +3,10 @@ package com.github.afloarea.jackgammon.juliette.manager;
 import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.board.GameBoard;
-import com.github.afloarea.jackgammon.juliette.message.server.NotifyMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.*;
+import com.github.afloarea.jackgammon.juliette.messages.server.NotifyMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import io.vertx.core.json.Json;
 import org.junit.jupiter.api.Test;
 

@@ -1,9 +1,9 @@
-package com.github.afloarea.jackgammon.juliette.message.server;
+package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 
 import java.util.Objects;
 import java.util.StringJoiner;

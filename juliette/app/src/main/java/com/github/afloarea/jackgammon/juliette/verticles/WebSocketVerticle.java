@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
-import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
-import com.github.afloarea.jackgammon.juliette.message.server.ServerToClientEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.messages.server.ServerToClientEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.DeliveryOptions;

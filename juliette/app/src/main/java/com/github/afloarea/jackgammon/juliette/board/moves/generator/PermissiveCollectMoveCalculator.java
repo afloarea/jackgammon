@@ -1,8 +1,20 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.moves.generator;
+
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.Constants;
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.Move;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * This calculator is similar to {@link BasicMoveCalculator} but it also allows a piece
+ * to be collected if the sum of the dice values is greater that the number of columns.
+ *
+ * This is typically used for the farthest piece which may be collected if the roll is high enough
+ * and there is at most one piece outside of the home area.
+ */
 public final class PermissiveCollectMoveCalculator extends AbstractMoveCalculator {
 
     private boolean checkedOnce = false;
@@ -19,7 +31,7 @@ public final class PermissiveCollectMoveCalculator extends AbstractMoveCalculato
 
     @Override
     protected boolean canMoveTo(int to, Direction direction) {
-        if (to < 25) {
+        if (to < Constants.COLLECT_INDEX) {
             return columnSequence.getColumn(to, direction).isClearForDirection(direction);
         }
         if (checkedOnce) {

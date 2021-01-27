@@ -3,12 +3,12 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.message.server.NotifyMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.ClientToServerEvent;
-import com.github.afloarea.jackgammon.juliette.message.client.PlayerJoinMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.message.client.SelectMoveMessage;
-import com.github.afloarea.jackgammon.juliette.message.server.*;
+import com.github.afloarea.jackgammon.juliette.messages.server.NotifyMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.server.*;
 import com.github.afloarea.jackgammon.juliette.verticles.MatchWatcherVerticle;
 import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
 import io.vertx.core.Vertx;

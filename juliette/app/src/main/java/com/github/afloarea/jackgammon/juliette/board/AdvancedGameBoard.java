@@ -4,6 +4,10 @@ import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.IllegalGameActionException;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.moves.executor.DefaultMoveExecutor;
+import com.github.afloarea.jackgammon.juliette.board.moves.executor.MoveExecutor;
+import com.github.afloarea.jackgammon.juliette.board.moves.generator.DefaultMoveProvider;
 
 import java.util.*;
 import java.util.function.Function;
@@ -104,7 +108,7 @@ public final class AdvancedGameBoard implements GameBoard {
     public boolean isGameComplete() {
         return Stream.of(Direction.FORWARD, Direction.BACKWARD)
                 .map(columns::getCollectColumn)
-                .anyMatch(column -> column.getPieceCount() == 15);
+                .anyMatch(column -> column.getPieceCount() == PIECES_PER_PLAYER);
     }
 
     @Override

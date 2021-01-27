@@ -1,4 +1,9 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.moves.generator;
+
+import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.Move;
 
 import java.util.*;
 import java.util.stream.Collectors;

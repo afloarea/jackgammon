@@ -1,4 +1,4 @@
-package com.github.afloarea.jackgammon.juliette.message.server;
+package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.github.afloarea.jackgammon.juliette.Color;

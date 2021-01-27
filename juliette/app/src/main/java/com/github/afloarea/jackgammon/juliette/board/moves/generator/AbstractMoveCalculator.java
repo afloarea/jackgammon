@@ -1,8 +1,15 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.moves.generator;
+
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.Move;
 
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Base class for computing possible moves for a column.
+ */
 public abstract class AbstractMoveCalculator implements MoveCalculator {
 
     protected final ColumnSequence columnSequence;
@@ -37,5 +44,11 @@ public abstract class AbstractMoveCalculator implements MoveCalculator {
         return moves.stream();
     }
 
+    /**
+     * Check whether a piece can be moved to a column.
+     * @param to the column
+     * @param direction the direction
+     * @return whether or not a piece can be moved
+     */
     protected abstract boolean canMoveTo(int to, Direction direction);
 }

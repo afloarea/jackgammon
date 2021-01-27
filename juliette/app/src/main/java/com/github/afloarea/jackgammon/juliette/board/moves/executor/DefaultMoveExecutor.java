@@ -1,12 +1,19 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.moves.executor;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.Move;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Default implementation of the {@link MoveExecutor} that splits a complex move
+ * into simple moves and executes each move.
+ */
 public final class DefaultMoveExecutor implements MoveExecutor {
     private final ColumnSequence columns;
 
