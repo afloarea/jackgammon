@@ -1,6 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.executor;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
+import com.github.afloarea.jackgammon.juliette.board.Constants;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 import com.github.afloarea.jackgammon.juliette.board.Move;
@@ -33,14 +34,13 @@ public final class DefaultMoveExecutor implements MoveExecutor {
         int fromIndex = columns.getColumnIndex(move.getSource(), direction);
 
         for (int distance : move.getDistances()) {
-            final int newIndex = fromIndex + distance;
+            final int newIndex = Math.min(fromIndex + distance, Constants.COLLECT_INDEX);
             splitMoves.add(new GameMove(
                     columns.getColumn(fromIndex, direction).getId(),
                     columns.getColumn(newIndex, direction).getId()));
             fromIndex = newIndex;
         }
 
-        splitMoves.add(new GameMove(columns.getColumn(fromIndex, direction).getId(), move.getTarget().getId()));
         return splitMoves.stream();
     }
 
