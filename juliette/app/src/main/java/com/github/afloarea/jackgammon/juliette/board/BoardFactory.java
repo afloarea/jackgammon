@@ -24,11 +24,11 @@ public final class BoardFactory {
 
     private BoardFactory() {}
 
-    public static BasicGameBoard buildDefaultBoard() {
-        return build(
-                new int[] {-2, 0, 0, 0, 0, +5,   0, +3, 0, 0, 0, -5},
-                new int[] {+2, 0, 0, 0, 0, -5,   0, -3, 0, 0, 0, +5}
-        );
+    public static AdvancedGameBoard buildDefaultBoard() {
+        return build(new int[][] {
+                {-2, 0, 0, 0, 0, +5,   0, +3, 0, 0, 0, -5},
+                {+2, 0, 0, 0, 0, -5,   0, -3, 0, 0, 0, +5}
+        });
     }
 
     public static BasicGameBoard build(int[] upper, int[] lower) {
@@ -38,7 +38,7 @@ public final class BoardFactory {
     public static AdvancedGameBoard build(int[][] values,
                                           int suspendedForward, int suspendedBackwards, int collectedForward, int collectedBackwards) {
 
-        final ColumnSequence columnSequence = new ColumnArrangement(values,
+        final ColumnSequence columnSequence = new ColumnArrangement(translateToColumns(values),
                 suspendedForward, suspendedBackwards, collectedForward, collectedBackwards);
 
         return new AdvancedGameBoard(columnSequence);
@@ -46,7 +46,7 @@ public final class BoardFactory {
 
     public static AdvancedGameBoard build(int[][] values) {
 
-        final ColumnSequence columnSequence = new ColumnArrangement(values,
+        final ColumnSequence columnSequence = new ColumnArrangement(translateToColumns(values),
                 0, 0, 0, 0);
 
         return new AdvancedGameBoard(columnSequence);
@@ -95,7 +95,7 @@ public final class BoardFactory {
         return String.format("%3s", column.getPieceCount() + column.getPieceColor().getSymbol());
     }
 
-    public static List<BoardColumn> translateToColumns(int[][] values) {
+    private static List<BoardColumn> translateToColumns(int[][] values) {
         final int[] upper = values[0];
         final int[] lower = reverse(values[1]);
 

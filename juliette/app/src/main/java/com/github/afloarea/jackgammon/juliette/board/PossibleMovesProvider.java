@@ -6,4 +6,5 @@ import java.util.stream.Stream;
 public interface PossibleMovesProvider {
 
     Stream<Move> streamPossibleMoves(List<Integer> dice, Direction direction);
+
 }

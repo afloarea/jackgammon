@@ -4,6 +4,12 @@ import java.util.stream.Stream;
 
 public interface ColumnSequence {
 
+    /**
+     * Retrieve a column by index by traversing the columns in the specified direction.
+     * @param index the index
+     * @param direction the direction
+     * @return the column
+     */
     BoardColumn getColumn(int index, Direction direction);
 
     Stream<BoardColumn> stream(Direction direction);

@@ -10,7 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.github.afloarea.jackgammon.juliette.board.Constants.DIRECTION_BY_COLOR;
+import static com.github.afloarea.jackgammon.juliette.board.Constants.*;
 
 public final class AdvancedGameBoard implements GameBoard {
 
@@ -55,6 +55,10 @@ public final class AdvancedGameBoard implements GameBoard {
     }
 
     private void updatePossibleMoves() {
+        if (remainingDiceValues.isEmpty()) {
+            movesMap.clear();
+            return;
+        }
         final var computedMoves =
                 defaultMoveProvider.streamPossibleMoves(remainingDiceValues, DIRECTION_BY_COLOR.get(currentPlayingColor))
                         .collect(Collectors.toMap(
@@ -90,7 +94,7 @@ public final class AdvancedGameBoard implements GameBoard {
         }
 
         final Move selectedMove = movesMap.get(move);
-        remainingDiceValues.removeAll(selectedMove.getDistances());
+        selectedMove.getDistances().forEach(remainingDiceValues::remove);
         final var executedMoves = moveExecutor.executeMove(selectedMove, DIRECTION_BY_COLOR.get(currentPlayingColor));
         updatePossibleMoves(); // update after executing the moves
         return executedMoves;
@@ -110,9 +114,9 @@ public final class AdvancedGameBoard implements GameBoard {
 
     @Override
     public Color getWinningColor() {
-        return DIRECTION_BY_COLOR.entrySet().stream()
-                .filter(entry -> columns.getCollectColumn(entry.getValue()).getPieceCount() == 15)
-                .map(Map.Entry::getKey)
+        return Stream.of(Direction.FORWARD, Direction.BACKWARD)
+                .filter(direction -> columns.getCollectColumn(direction).getPieceCount() == PIECES_PER_PLAYER)
+                .map(COLORS_BY_DIRECTION::get)
                 .findAny()
                 .orElse(Color.NONE);
     }

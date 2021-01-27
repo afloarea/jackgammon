@@ -6,4 +6,5 @@ import java.util.stream.Stream;
 public interface MoveCalculator {
 
     Stream<Move> computeMovesFromStart(int startIndex, List<Integer> availableHops, Direction direction);
+
 }

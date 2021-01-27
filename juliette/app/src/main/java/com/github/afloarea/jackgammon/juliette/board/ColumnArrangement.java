@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static com.github.afloarea.jackgammon.juliette.board.Constants.*;
+
 public final class ColumnArrangement implements ColumnSequence {
 
     private final Map<String, BoardColumn> columnsById;
@@ -19,13 +21,13 @@ public final class ColumnArrangement implements ColumnSequence {
 
     @Override
     public Stream<BoardColumn> stream(Direction direction) {
-        return Arrays.stream(columnsByDirection.get(direction));
+        return Arrays.stream(columnsByDirection.get(direction)).limit(COLLECT_INDEX);
     }
 
     @Override
     public int getUncollectableCount(Direction direction) {
         final int sum = Arrays.stream(columnsByDirection.get(direction))
-                .skip(19).limit(7)
+                .skip(HOME_START).limit(HOME_AND_COLLECT)
                 .filter(column -> column.getMovingDirectionOfElements() == direction)
                 .mapToInt(BoardColumn::getPieceCount)
                 .sum();
@@ -44,18 +46,18 @@ public final class ColumnArrangement implements ColumnSequence {
 
     @Override
     public BoardColumn getSuspendedColumn(Direction direction) {
-        return getColumn(0, direction);
+        return getColumn(SUSPEND_INDEX, direction);
     }
 
     @Override
     public BoardColumn getCollectColumn(Direction direction) {
-        return getColumn(25, direction);
+        return getColumn(COLLECT_INDEX, direction);
     }
 
-    public ColumnArrangement(int[][] values,
-                             int forwardSuspended, int backwardSuspended,
-                             int forwardCollected, int backwardCollected) {
-        final var base = BoardFactory.translateToColumns(values);
+    public ColumnArrangement(List<BoardColumn> columnLayout,
+                             int forwardSuspended, int backwardsSuspended,
+                             int forwardCollected, int backwardsCollected) {
+        final var base = new ArrayList<>(columnLayout);
 
         final var forward = new ArrayDeque<>(base);
         final var suspendForward = new BoardColumn(forwardSuspended, Direction.FORWARD, "SB");
@@ -65,8 +67,8 @@ public final class ColumnArrangement implements ColumnSequence {
 
         Collections.reverse(base);
         final var backward = new ArrayDeque<>(base);
-        final var suspendBackwards = new BoardColumn(backwardSuspended, Direction.BACKWARD, "SW");
-        final var collectBackwards = new BoardColumn(backwardCollected, Direction.BACKWARD, "CW");
+        final var suspendBackwards = new BoardColumn(backwardsSuspended, Direction.BACKWARD, "SW");
+        final var collectBackwards = new BoardColumn(backwardsCollected, Direction.BACKWARD, "CW");
         backward.addFirst(suspendBackwards);
         backward.addLast(collectBackwards);
 
