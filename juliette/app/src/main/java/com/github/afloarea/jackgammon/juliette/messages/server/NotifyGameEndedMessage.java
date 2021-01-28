@@ -1,27 +1,21 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class NotifyGameEndedMessage implements GameToPlayerMessage {
-    private final Color winningColor;
+    private final String winner;
 
-    public NotifyGameEndedMessage(Color winningColor) {
-        this.winningColor = winningColor;
+    public NotifyGameEndedMessage(String winner) {
+        this.winner = winner;
     }
 
     @JsonGetter("winner")
-    public Color getWinningColor() {
-        return winningColor;
-    }
-
-    @JsonGetter("loser")
-    public Color getLosingColor() {
-        return winningColor.complement();
+    public String getWinner() {
+        return winner;
     }
 
     @Override
@@ -29,18 +23,18 @@ public final class NotifyGameEndedMessage implements GameToPlayerMessage {
         if (this == o) return true;
         if (!(o instanceof NotifyGameEndedMessage)) return false;
         NotifyGameEndedMessage that = (NotifyGameEndedMessage) o;
-        return winningColor == that.winningColor;
+        return winner.equals(that.winner);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(winningColor);
+        return Objects.hash(winner);
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", NotifyGameEndedMessage.class.getSimpleName() + "[", "]")
-                .add("winningColor=" + winningColor)
+                .add("winner=" + winner)
                 .toString();
     }
 }

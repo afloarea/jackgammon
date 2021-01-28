@@ -5,7 +5,7 @@ import java.util.Random;
 import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
-public class DiceResult {
+public final class DiceResult {
     private static final int MIN_DICE = 1;
     private static final int MAX_DICE = 6;
     private static final Random RANDOM = new Random();

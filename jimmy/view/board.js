@@ -216,7 +216,7 @@ class Board {
         });
     }
 
-    initColumns(boardColumns, playingColor, opponentColor) {
+    initColumns(boardColumns, playingColor) {
         const mainColor = playingColor === "black" ? PROPS.BLACK : PROPS.WHITE;
         const secondColor = playingColor === "black" ? PROPS.WHITE : PROPS.BLACK;
         boardColumns.player.forEach(column => this.columnsById.get(column.columnId).init(column.pieces, mainColor));

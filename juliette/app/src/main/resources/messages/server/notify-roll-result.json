@@ -1,6 +1,6 @@
 {
   "type": "notify-roll",
-  "playingColor": "black",
+  "playerName": "Jack",
   "dice1": 3,
   "dice2": 2
 }

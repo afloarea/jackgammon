@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public final class InitGameMessage implements GameToPlayerMessage {
     private static final String BOARD_PLAYER_VALUE = "[\n" +
@@ -23,20 +24,27 @@ public final class InitGameMessage implements GameToPlayerMessage {
     private final String opponentName;
     private final String playerBoard;
     private final String opponentBoard;
+    private final boolean startFirst;
 
-    private InitGameMessage(String playerName, String opponentName, String playerBoard, String opponentBoard) {
+    public InitGameMessage(String playerName, String opponentName, boolean firstPlayerStarts) {
         this.playerName = playerName;
         this.opponentName = opponentName;
-        this.playerBoard = playerBoard;
-        this.opponentBoard = opponentBoard;
+        this.startFirst = firstPlayerStarts;
+        if (firstPlayerStarts) {
+            this.playerBoard = BOARD_PLAYER_VALUE;
+            this.opponentBoard = BOARD_OPPONENT_VALUE;
+        } else {
+            this.playerBoard = BOARD_OPPONENT_VALUE;
+            this.opponentBoard = BOARD_PLAYER_VALUE;
+        }
     }
 
     public static InitGameMessage buildFirstPlayerMessage(String playerName, String opponentName) {
-        return new InitGameMessage(playerName, opponentName, BOARD_PLAYER_VALUE, BOARD_OPPONENT_VALUE);
+        return new InitGameMessage(playerName, opponentName, true);
     }
 
     public static InitGameMessage buildSecondPlayerMessage(String playerName, String opponentName) {
-        return new InitGameMessage(playerName, opponentName, BOARD_OPPONENT_VALUE, BOARD_PLAYER_VALUE);
+        return new InitGameMessage(playerName, opponentName, false);
     }
 
     public String getPlayerName() {
@@ -45,6 +53,10 @@ public final class InitGameMessage implements GameToPlayerMessage {
 
     public String getOpponentName() {
         return opponentName;
+    }
+
+    public boolean isStartFirst() {
+        return startFirst;
     }
 
     @JsonRawValue
@@ -60,9 +72,10 @@ public final class InitGameMessage implements GameToPlayerMessage {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof InitGameMessage)) return false;
         InitGameMessage that = (InitGameMessage) o;
-        return playerName.equals(that.playerName)
+        return startFirst == that.startFirst
+                && playerName.equals(that.playerName)
                 && opponentName.equals(that.opponentName)
                 && playerBoard.equals(that.playerBoard)
                 && opponentBoard.equals(that.opponentBoard);
@@ -70,16 +83,17 @@ public final class InitGameMessage implements GameToPlayerMessage {
 
     @Override
     public int hashCode() {
-        return Objects.hash(playerName, opponentName, playerBoard, opponentBoard);
+        return Objects.hash(playerName, opponentName, playerBoard, opponentBoard, startFirst);
     }
 
     @Override
     public String toString() {
-        return "InitGameMessage{" +
-                "playerName='" + playerName + '\'' +
-                ", opponentName='" + opponentName + '\'' +
-                ", playerBoard='" + playerBoard + '\'' +
-                ", opponentBoard='" + opponentBoard + '\'' +
-                '}';
+        return new StringJoiner(", ", InitGameMessage.class.getSimpleName() + "[", "]")
+                .add("playerName='" + playerName + "'")
+                .add("opponentName='" + opponentName + "'")
+                .add("playerBoard='" + playerBoard + "'")
+                .add("opponentBoard='" + opponentBoard + "'")
+                .add("startFirst=" + startFirst)
+                .toString();
     }
 }

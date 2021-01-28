@@ -1,10 +1,19 @@
 const board = new Board();
 
-let socket = new WebSocket("ws://localhost:8080");
+
+const playerName = getPlayerName();
+document.getElementById("player-info").innerText = playerName;
+function getPlayerName() {
+  const defaultPlayerName = "Guest" + Math.floor(Math.random() * 1000);
+  return prompt("Please enter your name", defaultPlayerName) || defaultPlayerName;
+}
+
+
+let socket = new WebSocket(`ws://${window.location.hostname}:8080/play`);
 
 socket.onopen = function(e) {
     console.log('connection opened');
-    join();
+    sendJoinMessage(playerName, true);
 };
 
 socket.onmessage = function(event) {
@@ -60,25 +69,16 @@ function sendJoinMessage(name, ready) {
 let playingColor;
 
 function handleInit(msg) {
-  playingColor = msg.board.player.some(entry => entry.columnId === "A") ? "black" : "white"; // TODO: clean this up
-  const opponentColor = playingColor === "black" ? "white" : "black";
+  playingColor = msg.startFirst ? "black" : "white";
+
   document.getElementById("player-info").classList.add(playingColor);
-  board.initColumns(msg.board, playingColor, opponentColor);
+  board.initColumns(msg.board, playingColor);
   board.draw();
 }
 
-function join() {
-  const playerNames = ['Annie', "Anette", "Julie", "Mark", "Novak"];
-  const selectedPlayerNameIndex = Math.floor(Math.random() * playerNames.length);
-  const selectedPlayerName = playerNames[selectedPlayerNameIndex];
-
-  document.getElementById("player-info").innerText = selectedPlayerName;
-
-  sendJoinMessage(selectedPlayerName, true);
-}
 
 function displayGameOver(msg) {
-  alert(`You ${playingColor === msg.winner ? 'won' : 'lost'} the game!`);
+  alert(`${msg.winner} has won the game!`);
 }
 
 function selectMove(possibleMoves) {
@@ -87,8 +87,7 @@ function selectMove(possibleMoves) {
   }
   board.getPlayerMove(possibleMoves).then(selectedMove => {
     const msg = {
-      "type": "select-move",
-      playingColor,
+      type: "select-move",
       selectedMove
     };
 
@@ -99,7 +98,7 @@ function selectMove(possibleMoves) {
 }
 
 function updateRoll(msg) {
-  document.getElementById("roll-result").innerText = `${msg.dice1} ${msg.dice2} ${msg.playingColor}`;
+  document.getElementById("roll-result").innerText = `${msg.dice1} ${msg.dice2} ${msg.playerName}`;
 }
 
 const diceButton = document.getElementById('roll');
@@ -111,6 +110,6 @@ function handleRollPrompt() {
 
 diceButton.addEventListener('click', () => {
   console.log("sending roll request")
-  socket.send(`{"type": "roll", "playingColor": "${playingColor}"}`);
+  socket.send('{ "type": "roll" }');
   diceButton.disabled = true;
 });

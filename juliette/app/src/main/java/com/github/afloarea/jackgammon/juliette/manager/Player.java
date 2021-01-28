@@ -1,6 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.manager;
 
-public class Player {
+public final class Player {
 
     private final String id;
     private final String name;

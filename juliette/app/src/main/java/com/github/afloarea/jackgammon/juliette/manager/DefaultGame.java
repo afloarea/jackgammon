@@ -9,27 +9,22 @@ import com.github.afloarea.jackgammon.juliette.messages.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.github.afloarea.jackgammon.juliette.board.Constants.COLORS_BY_DIRECTION;
 
 public class DefaultGame implements Game {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultGame.class);
 
     private final Map<String, Direction> directionByPlayerId;
     private final GameBoard board;
-    private final Map<String, String> playerNamesById;
+    private final PlayerInfo firstPlayer;
+    private final PlayerInfo secondPlayer;
 
     DefaultGame(String firstPlayerId, String secondPlayerId, Map<String, String> playerNamesById) {
-        this.playerNamesById = playerNamesById;
-        final var firstPlayerDirection = Direction.getRandom();
-        directionByPlayerId = Map.of(
-                firstPlayerId, firstPlayerDirection,
-                secondPlayerId, firstPlayerDirection.reverse());
+        this.firstPlayer = new PlayerInfo(firstPlayerId, playerNamesById.get(firstPlayerId), Direction.FORWARD);
+        this.secondPlayer = new PlayerInfo(secondPlayerId, playerNamesById.get(secondPlayerId), Direction.BACKWARD);
+        this.directionByPlayerId = Map.of(firstPlayerId, Direction.FORWARD, secondPlayerId, Direction.BACKWARD);
+
         board = GameBoard.buildNewBoard();
     }
 
@@ -46,29 +41,19 @@ public class DefaultGame implements Game {
 
     @Override
     public GameToPlayersMessage init() {
-        final List<String> playerIds = new ArrayList<>(playerNamesById.keySet());
-        final String firstPlayerId;
-        final String secondPlayerId;
-        if (directionByPlayerId.get(playerIds.get(0)) == Direction.FORWARD) {
-            firstPlayerId = playerIds.get(0);
-            secondPlayerId = playerIds.get(1);
-        } else {
-            firstPlayerId = playerIds.get(1);
-            secondPlayerId = playerIds.get(0);
-        }
-
         return GameToPlayersMessage.of(
-                firstPlayerId, List.of(
-                        InitGameMessage.buildFirstPlayerMessage(playerNamesById.get(firstPlayerId), playerNamesById.get(secondPlayerId)),
-                        new PromptRollMessage()),
-                secondPlayerId,List.of(
-                        InitGameMessage.buildSecondPlayerMessage(playerNamesById.get(secondPlayerId), playerNamesById.get(firstPlayerId))));
+                firstPlayer.getId(), List.of(new InitGameMessage(
+                        firstPlayer.getName(), secondPlayer.getName(), true), new PromptRollMessage()),
+                secondPlayer.getId(), List.of(new InitGameMessage(
+                        firstPlayer.getName(), secondPlayer.getName(), false)));
     }
 
     private GameToPlayersMessage handleRoll(String playerId, String opponentId, PlayerRollMessage rollMessage) {
         final var playerDirection = directionByPlayerId.get(playerId);
         final var diceResult = DiceResult.generate();
-        final var notification = new NotifyRollMessage(COLORS_BY_DIRECTION.get(playerDirection), diceResult);
+        final var notification = new NotifyRollMessage(
+                firstPlayer.getId().equals(playerId) ? firstPlayer.getName() : secondPlayer.getName(),
+                diceResult);
 
         board.updateDiceForDirection(playerDirection, diceResult);
 
@@ -81,12 +66,13 @@ public class DefaultGame implements Game {
         final var move = selectMoveMessage.getSelectedMove();
         final var playerDirection = directionByPlayerId.get(playerId);
         final List<GameToPlayerMessage> playerMessages = board.executeMoveInDirection(playerDirection, move).stream()
-                .map(executedMoved -> NotifyMoveMessage.of(COLORS_BY_DIRECTION.get(playerDirection), executedMoved))
+                .map(NotifyMoveMessage::new)
                 .collect(Collectors.toCollection(ArrayList::new));
         final List<GameToPlayerMessage> opponentMessages = new ArrayList<>(playerMessages);
 
         if (board.isGameComplete()) {
-            final var endMessage = new NotifyGameEndedMessage(COLORS_BY_DIRECTION.get(board.getWinningDirection()));
+            final var endMessage = new NotifyGameEndedMessage(
+                    firstPlayer.getId().equals(playerId) ? firstPlayer.getName() : secondPlayer.getName());
             playerMessages.add(endMessage);
             opponentMessages.add(endMessage);
         } else {
@@ -112,5 +98,42 @@ public class DefaultGame implements Game {
 
     private List<GameToPlayerMessage> generateCurrentPlayerMessages(GameToPlayerMessage notification) {
         return List.of(notification, new PromptMoveMessage(board.getCurrentDirectionPossibleMoves()));
+    }
+
+    private static final class PlayerInfo {
+        private final String id;
+        private final String name;
+        private final Direction direction;
+
+        public PlayerInfo(String id, String name, Direction direction) {
+            this.id = id;
+            this.name = name;
+            this.direction = direction;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Direction getDirection() {
+            return direction;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof PlayerInfo)) return false;
+            PlayerInfo that = (PlayerInfo) o;
+            return id.equals(that.id) && name.equals(that.name) && direction == that.direction;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, name, direction);
+        }
     }
 }

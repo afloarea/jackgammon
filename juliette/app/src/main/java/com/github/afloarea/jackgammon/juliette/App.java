@@ -3,8 +3,6 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
-import com.github.afloarea.jackgammon.juliette.messages.server.NotifyMoveMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
@@ -14,83 +12,68 @@ import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
+import io.vertx.core.json.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 public class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
         final var vertx = Vertx.vertx();
-
-        vertx.eventBus().registerDefaultCodec(PlayerJoinMessage.class, new DefaultClientCodec<>());
-        vertx.eventBus().registerDefaultCodec(PlayerRollMessage.class, new DefaultClientCodec<>());
-        vertx.eventBus().registerDefaultCodec(SelectMoveMessage.class, new DefaultClientCodec<>());
-        vertx.eventBus().registerDefaultCodec(InitGameMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(PromptRollMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(NotifyRollMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(PromptMoveMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(NotifyMoveMessage.class, new DefaultServerCodec<>());
-        vertx.eventBus().registerDefaultCodec(NotifyGameEndedMessage.class, new DefaultServerCodec<>());
+        setUpCodecs(vertx);
 
         vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
                 vertx.deployVerticle(WebSocketVerticle.class.getName()));
 
     }
 
-    private static final class DefaultClientCodec<T extends ClientToServerEvent> implements MessageCodec<T, T> {
-        @Override
-        public void encodeToWire(Buffer buffer, ClientToServerEvent clientToServerEvent) {
-
-        }
-
-        @Override
-        public T decodeFromWire(int pos, Buffer buffer) {
-            return null;
-        }
-
-        @Override
-        public T transform(T clientToServerEvent) {
-            return clientToServerEvent;
-        }
-
-        @Override
-        public String name() {
-            return UUID.randomUUID().toString();
-        }
-
-        @Override
-        public byte systemCodecID() {
-            return -1;
-        }
+    private static void setUpCodecs(Vertx vertx) {
+        setUpCodecForClass(vertx, PlayerJoinMessage.class);
+        setUpCodecForClass(vertx, PlayerRollMessage.class);
+        setUpCodecForClass(vertx, SelectMoveMessage.class);
+        setUpCodecForClass(vertx, InitGameMessage.class);
+        setUpCodecForClass(vertx, PromptRollMessage.class);
+        setUpCodecForClass(vertx, NotifyRollMessage.class);
+        setUpCodecForClass(vertx, PromptMoveMessage.class);
+        setUpCodecForClass(vertx, NotifyMoveMessage.class);
+        setUpCodecForClass(vertx, NotifyGameEndedMessage.class);
     }
 
-    private static final class DefaultServerCodec<T extends ServerToClientEvent> implements MessageCodec<T, T> {
-        @Override
-        public void encodeToWire(Buffer buffer, ServerToClientEvent clientToServerEvent) {
+    private static <T> void setUpCodecForClass(Vertx vertx, Class<T> targetClass) {
+        vertx.eventBus().registerDefaultCodec(targetClass, new LocalImmutableCodec<>(targetClass));
+    }
 
+    private static final class LocalImmutableCodec<T> implements MessageCodec<T, T> {
+        private final Class<T> codecClass;
+
+        public LocalImmutableCodec(Class<T> codecClass) {
+            this.codecClass = codecClass;
         }
 
         @Override
-        public T decodeFromWire(int pos, Buffer buffer) {
-            return null;
+        public void encodeToWire(Buffer buffer, T t) { // not called for local usage
+            buffer.appendBuffer(Json.encodeToBuffer(t));
         }
 
         @Override
-        public T transform(T clientToServerEvent) {
-            return clientToServerEvent;
+        public T decodeFromWire(int pos, Buffer buffer) { // not called for local usage
+            return Json.decodeValue(buffer, codecClass);
+        }
+
+        @Override
+        public T transform(T t) { // called for local usage within the same application instance
+            return t;
         }
 
         @Override
         public String name() {
-            return UUID.randomUUID().toString();
+            return codecClass.getSimpleName();
         }
 
         @Override
         public byte systemCodecID() {
-            return -1;
+            return -1; // custom user codec must return -1
         }
     }
 }

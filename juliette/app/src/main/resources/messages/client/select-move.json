@@ -1,6 +1,5 @@
 {
   "type": "select-move",
-  "playingColor": "black",
   "selectedMove": {
     "type": "simple",
     "source": 0,

@@ -1,32 +1,16 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
-import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class NotifyMoveMessage implements GameToPlayerMessage {
-    private final Color playingColor;
     private final GameMove move;
 
-    public NotifyMoveMessage(Color playingColor, GameMove move) {
-        this.playingColor = playingColor;
+    public NotifyMoveMessage(GameMove move) {
         this.move = move;
-    }
-
-    public static NotifyMoveMessage from(SelectMoveMessage selectMessage) {
-        return new NotifyMoveMessage(selectMessage.getPlayingColor(), selectMessage.getSelectedMove());
-    }
-
-    public static NotifyMoveMessage of(Color color, GameMove move) {
-        return new NotifyMoveMessage(color, move);
-    }
-
-    public Color getPlayingColor() {
-        return playingColor;
     }
 
     public GameMove getMove() {
@@ -38,18 +22,17 @@ public final class NotifyMoveMessage implements GameToPlayerMessage {
         if (this == o) return true;
         if (!(o instanceof NotifyMoveMessage)) return false;
         NotifyMoveMessage that = (NotifyMoveMessage) o;
-        return playingColor == that.playingColor && Objects.equals(move, that.move);
+        return Objects.equals(move, that.move);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(playingColor, move);
+        return Objects.hash(move);
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", NotifyMoveMessage.class.getSimpleName() + "[", "]")
-                .add("playingColor=" + playingColor)
                 .add("move=" + move)
                 .toString();
     }

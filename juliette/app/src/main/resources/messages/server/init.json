@@ -15,5 +15,6 @@
       {"columnId": "M", "pieces": 2},
       {"columnId": "X", "pieces": 5}
     ]
-  }
+  },
+  "startFirst": true
 }
