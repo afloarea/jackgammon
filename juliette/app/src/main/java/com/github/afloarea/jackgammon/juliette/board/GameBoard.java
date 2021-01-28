@@ -1,6 +1,5 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
-import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 
@@ -9,23 +8,23 @@ import java.util.Set;
 
 public interface GameBoard {
 
-    void updateDiceForPlayingColor(Color playingColor, DiceResult dice);
+    void updateDiceForDirection(Direction direction, DiceResult dice);
 
-    List<GameMove> executeMoveForPlayingColor(Color playingColor, GameMove move);
+    List<GameMove> executeMoveInDirection(Direction direction, GameMove move);
 
     //-------
 
-    Set<GameMove> getPossibleMovesForCurrentPlayingColor();
+    Set<GameMove> getCurrentDirectionPossibleMoves();
 
-    Color getCurrentPlayingColor();
+    Direction getCurrentDirection();
 
-    Color getWinningColor();
+    Direction getWinningDirection();
 
-    Color getLosingColor();
+    Direction getLosingDirection();
 
     boolean isGameComplete();
 
-    boolean currentPlayingColorFinishedTurn();
+    boolean currentDirectionMovementIsComplete();
 
     static GameBoard buildNewBoard() {
         return BoardFactory.buildDefaultBoard();

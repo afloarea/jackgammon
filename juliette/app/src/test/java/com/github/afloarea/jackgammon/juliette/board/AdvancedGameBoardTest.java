@@ -1,25 +1,37 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
-import com.github.afloarea.jackgammon.juliette.Color;
 import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class AdvancedGameBoardTest {
+    private static final Map<Integer, String> IDS_BY_POSITION;
+
+    static {
+        final String identifiers = "ABCDEFGHIJKLXWVUTSRQPONM";
+        IDS_BY_POSITION = IntStream.range(0, identifiers.length()).boxed()
+                .collect(Collectors.toUnmodifiableMap(
+                        Function.identity(), index -> String.valueOf(identifiers.charAt(index))));
+    }
+
 
     @Test
     void boardHandlesSimpleRoll() {
         final var board = GameBoard.buildNewBoard();
         final var diceResult = new DiceResult(2, 1);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 1));
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 1));
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
 
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -27,13 +39,13 @@ class AdvancedGameBoardTest {
         final var board = GameBoard.buildNewBoard();
         final var diceResult = new DiceResult(2, 2);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(2, 4));
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(4, 6));
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 2));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(2, 4));
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(4, 6));
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
 
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -44,9 +56,9 @@ class AdvancedGameBoardTest {
         }, 1, 0, 0, 0);
         final var diceResult = new DiceResult(1, 6);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildEnter(Color.BLACK, 0)));
-        board.executeMoveForPlayingColor(Color.BLACK, buildEnter(Color.BLACK, 0));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.FORWARD, 0)));
+        board.executeMoveInDirection(Direction.FORWARD, buildEnter(Direction.FORWARD, 0));
     }
 
     @Test
@@ -59,8 +71,8 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(6, 6);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -72,15 +84,15 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(4, 1);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 4));
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(0, 1));
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 4));
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 1));
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
 
         final var secondDice = new DiceResult(6, 6);
 
-        board.updateDiceForPlayingColor(Color.WHITE, secondDice);
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.BACKWARD, secondDice);
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -93,17 +105,17 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(4, 3);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertEquals(Set.of(buildEnter(Color.BLACK, 2)), board.getPossibleMovesForCurrentPlayingColor());
-        board.executeMoveForPlayingColor(Color.BLACK, buildEnter(Color.BLACK, 2));
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        Assertions.assertEquals(Set.of(buildEnter(Direction.FORWARD, 2)), board.getCurrentDirectionPossibleMoves());
+        board.executeMoveInDirection(Direction.FORWARD, buildEnter(Direction.FORWARD, 2));
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
 
         final var secondDice = new DiceResult(6, 2);
 
-        board.updateDiceForPlayingColor(Color.WHITE, secondDice);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildEnter(Color.WHITE, 22)));
-        board.executeMoveForPlayingColor(Color.WHITE, buildEnter(Color.WHITE, 22));
-        Assertions.assertFalse(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.BACKWARD, secondDice);
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.BACKWARD, 22)));
+        board.executeMoveInDirection(Direction.BACKWARD, buildEnter(Direction.BACKWARD, 22));
+        Assertions.assertFalse(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -116,12 +128,12 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(3, 2);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 22));
-        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 21));
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 22));
+        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 21));
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
         Assertions.assertTrue(board.isGameComplete());
-        Assertions.assertEquals(Color.BLACK, board.getWinningColor());
+        Assertions.assertEquals(Direction.FORWARD, board.getWinningDirection());
     }
 
     @Test
@@ -133,8 +145,8 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(6, 5);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertEquals(Set.of(buildCollect(Color.BLACK, 20)), board.getPossibleMovesForCurrentPlayingColor());
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        Assertions.assertEquals(Set.of(buildCollect(Direction.FORWARD, 20)), board.getCurrentDirectionPossibleMoves());
     }
 
     @Test
@@ -147,12 +159,12 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(3, 5);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(16, 19));
-        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 19));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(16, 19));
+        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 19));
 
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().isEmpty());
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves().isEmpty());
     }
 
     @Test
@@ -165,9 +177,9 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(3, 6);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
 
-        Assertions.assertEquals(2, board.getPossibleMovesForCurrentPlayingColor().size());
+        Assertions.assertEquals(2, board.getCurrentDirectionPossibleMoves().size());
     }
 
     @Test
@@ -180,9 +192,9 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(6, 1);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
 
-        final var availableMoves = board.getPossibleMovesForCurrentPlayingColor();
+        final var availableMoves = board.getCurrentDirectionPossibleMoves();
         Assertions.assertTrue(availableMoves.contains(buildMove(11, 12)));
     }
 
@@ -196,10 +208,10 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(2, 1);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        board.executeMoveForPlayingColor(Color.BLACK, buildMove(17, 18));
-        final var availableMoves = board.getPossibleMovesForCurrentPlayingColor();
-        Assertions.assertTrue(availableMoves.contains(buildCollect(Color.BLACK, 22)));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.executeMoveInDirection(Direction.FORWARD, buildMove(17, 18));
+        final var availableMoves = board.getCurrentDirectionPossibleMoves();
+        Assertions.assertTrue(availableMoves.contains(buildCollect(Direction.FORWARD, 22)));
     }
 
     @Test
@@ -212,8 +224,8 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(6, 2);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildMove(16, 18)));
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildMove(16, 18)));
     }
 
     @Test
@@ -224,9 +236,9 @@ class AdvancedGameBoardTest {
                 });
         final var diceResult = new DiceResult(6, 5);
 
-        board.updateDiceForPlayingColor(Color.WHITE, diceResult);
-        board.executeMoveForPlayingColor(Color.WHITE, buildMove(12, 1));
-        Assertions.assertTrue(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        board.executeMoveInDirection(Direction.BACKWARD, buildMove(12, 1));
+        Assertions.assertTrue(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -237,10 +249,10 @@ class AdvancedGameBoardTest {
                 });
         final var diceResult = new DiceResult(3, 3);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
 
         Assertions.assertTrue(
-                board.getPossibleMovesForCurrentPlayingColor().stream().noneMatch(move -> move.getTo().equals("CB")));
+                board.getCurrentDirectionPossibleMoves().stream().noneMatch(move -> move.getTo().equals("CB")));
 
     }
 
@@ -254,11 +266,11 @@ class AdvancedGameBoardTest {
         );
         final var diceResult = new DiceResult(6, 2);
 
-        board.updateDiceForPlayingColor(Color.WHITE, diceResult);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor()
-                .contains(buildCollect(Color.WHITE, 4)));
-        board.executeMoveForPlayingColor(Color.WHITE, buildCollect(Color.WHITE, 4));
-        Assertions.assertFalse(board.currentPlayingColorFinishedTurn());
+        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves()
+                .contains(buildCollect(Direction.BACKWARD, 4)));
+        board.executeMoveInDirection(Direction.BACKWARD, buildCollect(Direction.BACKWARD, 4));
+        Assertions.assertFalse(board.currentDirectionMovementIsComplete());
     }
 
     @Test
@@ -269,8 +281,8 @@ class AdvancedGameBoardTest {
                 });
         final var diceResult = new DiceResult(4, 1);
 
-        board.updateDiceForPlayingColor(Color.WHITE, diceResult);
-        Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildMove(21, 20)));
+        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        Assertions.assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildMove(21, 20)));
     }
 
     @Test
@@ -282,23 +294,30 @@ class AdvancedGameBoardTest {
                 0, 0, 14, 9);
         final var diceResult = new DiceResult(4, 1);
 
-        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
 
-        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 22));
+        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 22));
         Assertions.assertTrue(board.isGameComplete());
-        Assertions.assertSame(Color.BLACK, board.getWinningColor());
+        Assertions.assertSame(Direction.FORWARD, board.getWinningDirection());
     }
 
     private GameMove buildMove(int from, int to) {
-        return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), BoardFactory.IDS_BY_POSITION.get(to));
+        return new GameMove(IDS_BY_POSITION.get(from), IDS_BY_POSITION.get(to));
     }
 
-    private GameMove buildEnter(Color color, int to) {
-        return new GameMove("S" + color.getSymbol(), BoardFactory.IDS_BY_POSITION.get(to));
+    private GameMove buildEnter(Direction direction, int to) {
+        return new GameMove("S" + getSymbolForDirection(direction), IDS_BY_POSITION.get(to));
     }
 
-    private GameMove buildCollect(Color color, int from) {
-        return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), "C" + color.getSymbol());
+    private GameMove buildCollect(Direction direction, int from) {
+        return new GameMove(IDS_BY_POSITION.get(from), "C" + getSymbolForDirection(direction));
+    }
+
+    private String getSymbolForDirection(Direction direction) {
+        if (direction == Direction.NONE) {
+            return " ";
+        }
+        return direction == Direction.FORWARD ? "B" : "W";
     }
 
 }

@@ -35,8 +35,7 @@ public final class MatchWatcherVerticle extends AbstractVerticle {
         }
 
         final var playingPlayer = playersById.get(playerId);
-        final var opponentId = playingPlayer.getGame().getPlayersIds().stream()
-                .filter(player -> !playerId.equals(player)).findFirst().get();
+        final var opponentId = playingPlayer.getOpponent().getId();
 
         playersById.remove(playerId);
         playersById.remove(opponentId);
@@ -59,9 +58,7 @@ public final class MatchWatcherVerticle extends AbstractVerticle {
                     waitingPlayers.add(player);
                 } else {
                     final var opponent = waitingPlayers.removeFirst();
-                    final var game = new DefaultGame(opponent.getId(), player.getId());
-                    opponent.setGame(game);
-                    player.setGame(game);
+                    final var game = Game.setUpGame(player, opponent);
                     playersById.put(player.getId(), player);
                     playersById.put(opponent.getId(), opponent);
                     initGame(game);
@@ -73,22 +70,19 @@ public final class MatchWatcherVerticle extends AbstractVerticle {
         // handle disconnect?
 
         // normal message
-        final var game = playersById.get(playerId).getGame();
-        final var result = game.handle((PlayerToGameMessage) body);
-        sendMessagesToPlayers(result, game);
+        final var result = playersById.get(playerId).executeMoveMessage((PlayerToGameMessage) body);
+        sendMessagesToPlayers(result);
     }
 
     private void initGame(Game game) {
         final var result = game.init();
-        sendMessagesToPlayers(result, game);
+        sendMessagesToPlayers(result);
     }
 
-    private void sendMessagesToPlayers(GameToPlayersMessage messages, Game game) {
-        game.getPlayersIds().forEach(playerId -> {
-            final var playerMessages = messages.getMessagesForPlayerId(playerId);
+    private void sendMessagesToPlayers(GameToPlayersMessage messages) {
+        messages.forEachPlayerMessages((playerId, playerMessages) -> {
             final var deliveryOptions = new DeliveryOptions().addHeader(Headers.CLIENT_ID, playerId);
-            playerMessages.forEach(message ->
-                    vertx.eventBus().send(Endpoints.SEND_TO_PLAYER, message, deliveryOptions));
+            playerMessages.forEach(msg -> vertx.eventBus().send(Endpoints.SEND_TO_PLAYER, msg, deliveryOptions));
         });
     }
 }

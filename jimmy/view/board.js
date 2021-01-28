@@ -216,10 +216,11 @@ class Board {
         });
     }
 
-    initColumns(boardColumns) {
-        boardColumns.forEach(column => {
-            this.columnsById.get(column.columnId).init(column.pieces, column.color === 'black' ? PROPS.BLACK : PROPS.WHITE);
-        });
+    initColumns(boardColumns, playingColor, opponentColor) {
+        const mainColor = playingColor === "black" ? PROPS.BLACK : PROPS.WHITE;
+        const secondColor = playingColor === "black" ? PROPS.WHITE : PROPS.BLACK;
+        boardColumns.player.forEach(column => this.columnsById.get(column.columnId).init(column.pieces, mainColor));
+        boardColumns.opponent.forEach(column => this.columnsById.get(column.columnId).init(column.pieces, secondColor));
 
         // maybe remove this? or move it somewhere else
         this.draw();

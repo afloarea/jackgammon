@@ -1,5 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
+import java.util.Random;
+
 public enum Direction {
     FORWARD(1) {
         @Override
@@ -35,5 +37,13 @@ public enum Direction {
             return NONE;
         }
         return sign < 0 ? Direction.FORWARD : Direction.BACKWARD;
+    }
+
+    public static Direction getRandom() {
+        return Wrapper.RANDOM.nextBoolean() ? Direction.FORWARD : Direction.BACKWARD;
+    }
+
+    private static final class Wrapper {
+        private static final Random RANDOM = new Random();
     }
 }

@@ -42,6 +42,6 @@ public final class Move {
 
     @Override
     public String toString() {
-        return "M[" + source.getId() + " -> " + target.getId() + "|" + distances.toString() + "]";
+        return "M{ " + source.getId() + " -> " + target.getId() + " / " + distances.toString() + " }";
     }
 }

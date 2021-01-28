@@ -60,9 +60,10 @@ function sendJoinMessage(name, ready) {
 let playingColor;
 
 function handleInit(msg) {
-  playingColor = msg.playingColor;
+  playingColor = msg.board.player.some(entry => entry.columnId === "A") ? "black" : "white"; // TODO: clean this up
+  const opponentColor = playingColor === "black" ? "white" : "black";
   document.getElementById("player-info").classList.add(playingColor);
-  board.initColumns(msg.board);
+  board.initColumns(msg.board, playingColor, opponentColor);
   board.draw();
 }
 
