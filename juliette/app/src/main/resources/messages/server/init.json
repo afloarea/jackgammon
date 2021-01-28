@@ -1,0 +1,19 @@
+{
+  "type": "game-init",
+  "playerName": "the-player-name",
+  "opponentName": "the-opponent-name",
+  "board": {
+    "player": [
+      {"columnId": "A", "pieces": 2},
+      {"columnId": "L", "pieces": 5},
+      {"columnId": "R", "pieces": 5},
+      {"columnId": "T", "pieces": 3}
+    ],
+    "opponent": [
+      {"columnId": "F", "pieces": 5},
+      {"columnId": "H", "pieces": 3},
+      {"columnId": "M", "pieces": 2},
+      {"columnId": "X", "pieces": 5}
+    ]
+  }
+}

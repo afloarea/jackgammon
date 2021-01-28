@@ -1,0 +1,7 @@
+{
+  "type": "prompt-move",
+  "possibleMoves": {
+    "A": ["B", "C", "H"],
+    "B": ["C", "D", "I"]
+  }
+}

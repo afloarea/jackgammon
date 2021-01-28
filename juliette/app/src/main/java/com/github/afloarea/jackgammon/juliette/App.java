@@ -3,15 +3,94 @@
  */
 package com.github.afloarea.jackgammon.juliette;
 
+import com.github.afloarea.jackgammon.juliette.messages.server.NotifyMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.server.*;
+import com.github.afloarea.jackgammon.juliette.verticles.MatchWatcherVerticle;
+import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.MessageCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
-        final var board = new DefaultGameBoard();
-        board.init();
-        System.out.println(board);
+        final var vertx = Vertx.vertx();
+
+        vertx.eventBus().registerDefaultCodec(PlayerJoinMessage.class, new DefaultClientCodec<>());
+        vertx.eventBus().registerDefaultCodec(PlayerRollMessage.class, new DefaultClientCodec<>());
+        vertx.eventBus().registerDefaultCodec(SelectMoveMessage.class, new DefaultClientCodec<>());
+        vertx.eventBus().registerDefaultCodec(InitGameMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(PromptRollMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(NotifyRollMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(PromptMoveMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(NotifyMoveMessage.class, new DefaultServerCodec<>());
+        vertx.eventBus().registerDefaultCodec(NotifyGameEndedMessage.class, new DefaultServerCodec<>());
+
+        vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
+                vertx.deployVerticle(WebSocketVerticle.class.getName()));
+
+    }
+
+    private static final class DefaultClientCodec<T extends ClientToServerEvent> implements MessageCodec<T, T> {
+        @Override
+        public void encodeToWire(Buffer buffer, ClientToServerEvent clientToServerEvent) {
+
+        }
+
+        @Override
+        public T decodeFromWire(int pos, Buffer buffer) {
+            return null;
+        }
+
+        @Override
+        public T transform(T clientToServerEvent) {
+            return clientToServerEvent;
+        }
+
+        @Override
+        public String name() {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public byte systemCodecID() {
+            return -1;
+        }
+    }
+
+    private static final class DefaultServerCodec<T extends ServerToClientEvent> implements MessageCodec<T, T> {
+        @Override
+        public void encodeToWire(Buffer buffer, ServerToClientEvent clientToServerEvent) {
+
+        }
+
+        @Override
+        public T decodeFromWire(int pos, Buffer buffer) {
+            return null;
+        }
+
+        @Override
+        public T transform(T clientToServerEvent) {
+            return clientToServerEvent;
+        }
+
+        @Override
+        public String name() {
+            return UUID.randomUUID().toString();
+        }
+
+        @Override
+        public byte systemCodecID() {
+            return -1;
+        }
     }
 }

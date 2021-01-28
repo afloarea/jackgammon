@@ -32,10 +32,12 @@ ext {
     slf4jVersion = "1.7.30"
     junitVersion = "5.7.0"
     log4jVersion = "2.14.0"
+    jacksonVersion = "2.12.1"
 }
 
 dependencies {
     implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 
     // logging
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
@@ -53,6 +55,10 @@ dependencies {
 application {
     mainModule = "com.github.afloarea.jackgammon.juliette"
     mainClass = "com.github.afloarea.jackgammon.juliette.App"
+}
+
+run {
+    standardInput = System.in
 }
 
 tasks.named('test') {

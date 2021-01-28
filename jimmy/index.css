@@ -1,0 +1,21 @@
+canvas {
+    border:1px solid #000000;
+}
+
+.row {
+    display: flex;
+}
+
+.column {
+    flex: 50%;
+}
+
+.black {
+    background-color: black;
+    color: white;
+}
+
+.white {
+    background-color: rgb(231, 235, 39);
+    color: black;
+}

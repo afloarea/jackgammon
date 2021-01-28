@@ -1,16 +1,19 @@
 package com.github.afloarea.jackgammon.juliette;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public final class GameMove {
-    private final Color color;
-    private final int from;
-    private final int distance;
+    private final String from;
+    private final String to;
 
-    public GameMove(Color color, int from, int distance) {
-        this.color = color;
+    public GameMove(@JsonProperty("source") String from,
+                    @JsonProperty("target") String to) {
         this.from = from;
-        this.distance = distance;
+        this.to = to;
     }
 
     @Override
@@ -18,23 +21,29 @@ public final class GameMove {
         if (this == o) return true;
         if (!(o instanceof GameMove)) return false;
         GameMove gameMove = (GameMove) o;
-        return from == gameMove.from && distance == gameMove.distance && color == gameMove.color;
+        return from.equals(gameMove.from) && to.equals(gameMove.to);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(color, from, distance);
+        return Objects.hash(from, to);
     }
 
-    public Color getColor() {
-        return color;
-    }
-
-    public int getFrom() {
+    @JsonGetter("source")
+    public String getFrom() {
         return from;
     }
 
-    public int getDistance() {
-        return distance;
+    @JsonGetter("target")
+    public String getTo() {
+        return to;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(",", "GM[", "]")
+                .add("from=" + from)
+                .add("to=" + to)
+                .toString();
     }
 }

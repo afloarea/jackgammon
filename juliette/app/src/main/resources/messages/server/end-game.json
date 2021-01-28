@@ -1,0 +1,5 @@
+{
+  "type": "notify-end",
+  "winner": "black",
+  "loser": "white"
+}

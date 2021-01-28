@@ -1,0 +1,8 @@
+{
+  "type": "notify-move",
+  "playingColor": "black",
+  "move": {
+    "source": "A",
+    "target": "B"
+  }
+}

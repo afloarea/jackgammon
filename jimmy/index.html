@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jackgammon</title>
+    <link rel="stylesheet" href="index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
+    <script src="view/board.js" defer></script>
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <h1>Welcome to Jimmy, your websocket client!</h1>
+    <h2>Player Info: <span id="player-info"></span></h2>
+
+    <!-- canvas -->
+    <div class="row">
+        <canvas class="column" id="game-canvas" width="500" height="600">Browser does not support canvas</canvas>
+        <div class="column">
+            <button id="roll">Roll dice</button>
+            <p>Last Roll: <span id="roll-result"></span></p>
+        </div>
+    </div>
+    
+</body>
+</html>
