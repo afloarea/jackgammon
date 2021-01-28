@@ -59,7 +59,7 @@ public final class AdvancedGameBoard implements GameBoard {
     }
 
     private void updatePossibleMoves() {
-        if (remainingDiceValues.isEmpty()) {
+        if (remainingDiceValues.isEmpty() || isGameComplete()) {
             movesMap.clear();
             return;
         }

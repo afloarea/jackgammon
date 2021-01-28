@@ -273,6 +273,22 @@ class AdvancedGameBoardTest {
         Assertions.assertTrue(board.getPossibleMovesForCurrentPlayingColor().contains(buildMove(21, 20)));
     }
 
+    @Test
+    void testFinishMove() {
+        final var board = BoardFactory.build(new int[][]{
+                new int[]{1, 2, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0},
+                new int[]{0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        },
+                0, 0, 14, 9);
+        final var diceResult = new DiceResult(4, 1);
+
+        board.updateDiceForPlayingColor(Color.BLACK, diceResult);
+
+        board.executeMoveForPlayingColor(Color.BLACK, buildCollect(Color.BLACK, 22));
+        Assertions.assertTrue(board.isGameComplete());
+        Assertions.assertSame(Color.BLACK, board.getWinningColor());
+    }
+
     private GameMove buildMove(int from, int to) {
         return new GameMove(BoardFactory.IDS_BY_POSITION.get(from), BoardFactory.IDS_BY_POSITION.get(to));
     }
