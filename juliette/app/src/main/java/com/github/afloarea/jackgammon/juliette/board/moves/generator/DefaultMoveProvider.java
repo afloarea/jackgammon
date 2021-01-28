@@ -31,7 +31,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
     public Stream<Move> streamPossibleMoves(List<Integer> dice, Direction direction) {
         this.currentDice = dice;
         this.currentDirection = direction;
-        return filterMovesToMaximizeDiceUsed(computePossibleMoves().distinct());
+        return filterMovesToMaximizeDiceValuesUsed(computePossibleMoves().distinct());
     }
 
     private Stream<Move> computePossibleMoves() {
@@ -103,7 +103,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
         return computeMoves(permissiveCalculator, from, hops, direction);
     }
 
-    private Stream<Move> filterMovesToMaximizeDiceUsed(
+    private Stream<Move> filterMovesToMaximizeDiceValuesUsed(
             Stream<Move> originalMoves) {
 
         if (!isSimpleDice(currentDice)) {
@@ -111,36 +111,46 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
         }
 
         final Map<List<Integer>, List<Move>> movesByDice = originalMoves.collect(Collectors.groupingBy(Move::getDistances));
-        final int firstDice = currentDice.get(0);
-        final int secondDice = currentDice.get(1);
-
-        final var firstDiceMoves = findMovesFromColumnsWithSinglePiece(movesByDice.get(List.of(firstDice)));
-        final var secondDiceMoves = findMovesFromColumnsWithSinglePiece(movesByDice.get(List.of(secondDice)));
-
         final Stream<Move> moves = movesByDice.values().stream().flatMap(Collection::stream);
 
-        if (firstDiceMoves.size() == 1 && secondDiceMoves.size() != 1) {
-            final var sourceColumnId = firstDiceMoves.get(0).getSource().getId();
-            return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
-                    || move.getDistances().contains(firstDice));
-
-        } else if (firstDiceMoves.size() != 1 && secondDiceMoves.size() == 1) {
-            final var sourceColumnId = secondDiceMoves.get(0).getSource().getId();
-            return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
-                    || move.getDistances().contains(secondDice));
+        if (movesByDice.keySet().size() != 2) { // if there are composite moves or only one dice value was used
+            return moves;
         }
 
-        return moves;
+        final Integer firstDice = currentDice.get(0);
+        final Integer secondDice = currentDice.get(1);
+
+        final var firstConstrained = findConstrainedColumn(movesByDice.get(List.of(firstDice)));
+        final var secondConstrained = findConstrainedColumn(movesByDice.get(List.of(secondDice)));
+
+        if (firstConstrained.isPresent() && secondConstrained.isPresent()
+                || firstConstrained.isEmpty() && secondConstrained.isEmpty()) {
+            return moves;
+        }
+
+        final String sourceColumnId;
+        final Integer constrainedDice;
+        if (firstConstrained.isPresent()) {
+            sourceColumnId = firstConstrained.get().getId();
+            constrainedDice = firstDice;
+        } else {
+            sourceColumnId = secondConstrained.get().getId();
+            constrainedDice = secondDice;
+        }
+
+        return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
+                || move.getDistances().contains(constrainedDice));
     }
 
     private boolean isSimpleDice(List<Integer> dice) {
         return dice.size() == 2 && !dice.get(0).equals(dice.get(1));
     }
 
-    private List<Move> findMovesFromColumnsWithSinglePiece(List<Move> original) {
-        if (original == null) {
-            return Collections.emptyList();
+    private Optional<BoardColumn> findConstrainedColumn(List<Move> original) {
+        if (original == null || original.size() != 1) {
+            return Optional.empty();
         }
-        return original.stream().filter(move -> move.getSource().getPieceCount() == 1).collect(Collectors.toList());
+        return Optional.of(original.get(0).getSource())
+                .filter(column -> column.getPieceCount() == 1);
     }
 }
