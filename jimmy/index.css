@@ -58,7 +58,7 @@ canvas {
     }
 }
 
-@media only screen and (max-width: 935px) and (orientation: landscape) {
+@media only screen and (max-height: 400px) and (orientation: landscape) {
     canvas {
         height: 80vh;
     }
