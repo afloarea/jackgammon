@@ -1,8 +1,33 @@
+h1 {
+    text-align: center;
+}
+
+.centered-text {
+    text-align: center;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.hidden {
+    display: none;
+}
+
+.going-first, .going-second {
+    width: 25px;
+}
+
 canvas {
     background-image: url(assets/board.svg);
     background-repeat: no-repeat;
     background-size: cover;
     border:1px solid #000000;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 
 .row {
@@ -23,6 +48,24 @@ canvas {
     color: black;
 }
 
-#assets {
-    display: none;
+
+@media only screen and (max-width: 600px) and (orientation: portrait) {
+    canvas {
+        width: 100%;
+    }
+    h1 {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 935px) and (orientation: landscape) {
+    canvas {
+        height: 80vh;
+    }
+    h1, h2 {
+        display: none;
+    }
+    #status {
+        display: flex;
+    }
 }

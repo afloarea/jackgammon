@@ -26,7 +26,7 @@ PROPS.context.strokeStyle='purple'
 
 function getMousePos(evt) {
     // TODO: check rect.left and rect.top are updated when the canvas is repositioned
-    let rect = PROPS.canvasBounding;
+    let rect = PROPS.canvas.getBoundingClientRect();
  
     let X = (evt.clientX - rect.left) / PROPS.canvas.clientWidth * PROPS.canvas.width;
     let Y = (evt.clientY - rect.top) / PROPS.canvas.clientHeight * PROPS.canvas.height;

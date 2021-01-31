@@ -2,7 +2,6 @@ const board = new Board();
 
 
 const playerName = getPlayerName();
-document.getElementById("player-info").innerText = playerName;
 function getPlayerName() {
   const defaultPlayerName = "Guest" + Math.floor(Math.random() * 1000);
   return prompt("Please enter your name", defaultPlayerName) || defaultPlayerName;
@@ -66,13 +65,14 @@ function sendJoinMessage(name, ready) {
   socket.send(JSON.stringify(msg));
 }
 
-let playingColor;
-
 function handleInit(msg) {
-  playingColor = msg.startFirst ? "black" : "white";
+  Array.from(document.getElementsByClassName(msg.startFirst ? "going-second":"going-first")).forEach(element => element.classList.add('hidden'));
+  document.getElementById('player-name').innerText = msg.playerName;
+  document.getElementById('opponent-name').innerText = msg.opponentName;
+  
+  document.getElementById('match-info').classList.remove('invisible');
 
-  document.getElementById("player-info").classList.add(playingColor);
-  board.initColumns(msg.board, playingColor);
+  board.initColumns(msg.board, msg.startFirst ? "black":"white");
   board.draw();
 }
 

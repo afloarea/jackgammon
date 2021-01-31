@@ -11,6 +11,5 @@
 
 
 const ASSETS = {};
-ASSETS.BOARD = document.getElementById("board");
 ASSETS.BLACK_PIECE = document.getElementById("black-piece");
 ASSETS.WHITE_PIECE = document.getElementById("white-piece");
