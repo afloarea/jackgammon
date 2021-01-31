@@ -1,9 +1,16 @@
-const image = new Image();
+// const image = new Image();
 
-const ctx = document.getElementsByTagName("canvas")[0].getContext('2d');
+// const ctx = document.getElementsByTagName("canvas")[0].getContext('2d');
 
-image.addEventListener('load', () => {
-    ctx.drawImage(image, 0, 0, 40, 40);
-})
+// image.addEventListener('load', () => {
+//     ctx.drawImage(image, 0, 0, 40, 40);
+// })
 
-image.src = "assets/white.png";
+// image.src = "assets/white.png";
+
+
+
+const ASSETS = {};
+ASSETS.BOARD = document.getElementById("board");
+ASSETS.BLACK_PIECE = document.getElementById("black-piece");
+ASSETS.WHITE_PIECE = document.getElementById("white-piece");

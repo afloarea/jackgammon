@@ -1,4 +1,7 @@
 canvas {
+    background-image: url(assets/board.svg);
+    background-repeat: no-repeat;
+    background-size: cover;
     border:1px solid #000000;
 }
 
@@ -18,4 +21,8 @@ canvas {
 .white {
     background-color: rgb(231, 235, 39);
     color: black;
+}
+
+#assets {
+    display: none;
 }

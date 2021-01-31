@@ -6,6 +6,7 @@
     <title>Jackgammon</title>
     <link rel="stylesheet" href="index.css" />
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
+    <script src="assets.js" defer></script>
     <script src="view/board.js" defer></script>
     <script src="index.js" defer></script>
 </head>
@@ -15,11 +16,17 @@
 
     <!-- canvas -->
     <div class="row">
-        <canvas class="column" id="game-canvas" width="500" height="600">Browser does not support canvas</canvas>
+        <canvas class="column" id="game-canvas" width="600" height="400">Browser does not support canvas</canvas>
         <div class="column">
             <button id="roll">Roll dice</button>
             <p>Last Roll: <span id="roll-result"></span></p>
         </div>
+    </div>
+
+    <div id="assets">
+        <img id="board" src="assets/board.png" />
+        <img id="black-piece" src="assets/black.png" />
+        <img id="white-piece" src="assets/white.png" />
     </div>
     
 </body>

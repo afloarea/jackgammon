@@ -5,7 +5,6 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="210mm"
@@ -16,63 +15,10 @@
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07, custom)"
    sodipodi:docname="black.svg"
    inkscape:export-filename="/home/afloarea/Repositories/jackgammon/jimmy/assets/black.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   inkscape:export-xdpi="29.452393"
+   inkscape:export-ydpi="29.452393">
   <defs
-     id="defs4766">
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient5386">
-      <stop
-         style="stop-color:#000000;stop-opacity:1;"
-         offset="0"
-         id="stop5382" />
-      <stop
-         style="stop-color:#000000;stop-opacity:0;"
-         offset="1"
-         id="stop5384" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient5345">
-      <stop
-         style="stop-color:#000000;stop-opacity:1;"
-         offset="0"
-         id="stop5341" />
-      <stop
-         style="stop-color:#000000;stop-opacity:0;"
-         offset="1"
-         id="stop5343" />
-    </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5345"
-       id="linearGradient5347"
-       x1="102.66653"
-       y1="174.36398"
-       x2="102.66653"
-       y2="129.32207"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0,1.2930248)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5345"
-       id="linearGradient5380"
-       x1="102.82189"
-       y1="175.67503"
-       x2="102.82189"
-       y2="50.866249"
-       gradientUnits="userSpaceOnUse" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5386"
-       id="linearGradient5388"
-       x1="76.985376"
-       y1="151.09604"
-       x2="124.67854"
-       y2="151.09604"
-       gradientUnits="userSpaceOnUse" />
-  </defs>
+     id="defs4766" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -81,8 +27,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="243.2758"
-     inkscape:cy="571.94618"
+     inkscape:cx="365.34957"
+     inkscape:cy="575.54617"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -109,14 +55,14 @@
      inkscape:groupmode="layer"
      id="layer1">
     <circle
-       style="fill:url(#linearGradient5380);stroke:#000000;stroke-width:1.946;fill-opacity:1.0"
+       style="fill:#800015;stroke:#000000;stroke-width:1.946;fill-opacity:1;stroke-opacity:1"
        id="path4774"
        cx="102.07799"
        cy="149.32802"
        r="24.899263" />
     <path
        sodipodi:type="spiral"
-       style="opacity:1;mix-blend-mode:normal;fill:url(#linearGradient5388);fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient5347);stroke-width:1.565;stroke-miterlimit:4;stroke-dasharray:none"
+       style="opacity:1;mix-blend-mode:normal;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.565;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path4778"
        sodipodi:cx="103.05492"
        sodipodi:cy="151.10791"

@@ -6,15 +6,20 @@ PROPS.WIDTH = PROPS.canvas.width;
 PROPS.HEIGHT = PROPS.canvas.height;
 PROPS.CANVAS_X = PROPS.canvasBounding.left;
 PROPS.CANVAS_Y = PROPS.canvasBounding.top;
-PROPS.PIECE_RADIUS = PROPS.WIDTH / (15 * 2);
+PROPS.PIECE_RADIUS = PROPS.WIDTH / (25 * 2);
 PROPS.PIECE_DIAMETER = 2 * PROPS.PIECE_RADIUS;
-PROPS.UPPER_BASE = PROPS.PIECE_RADIUS;
-PROPS.LOWER_BASE = PROPS.HEIGHT - PROPS.PIECE_RADIUS;
+PROPS.BOARD_BORDER_WIDTH = PROPS.WIDTH * 2 / 100;
+PROPS.UPPER_BASE =  PROPS.HEIGHT * 2 / 100;
+PROPS.LOWER_BASE = PROPS.HEIGHT - PROPS.UPPER_BASE;
 PROPS.COLUMN_MAX_PIECE_HEIGHT = 7;
 PROPS.PIx2 = 2 * Math.PI;
 PROPS.BLACK = 'black';
 PROPS.WHITE = 'yellow';
-PROPS.HIGHLIGHT = 'purple';
+PROPS.HIGHLIGHT = '#A020F030';
+PROPS.COLUMN_WIDTH = PROPS.WIDTH / 16;
+PROPS.EDGE_WIDTH = PROPS.COLUMN_WIDTH;
+PROPS.BOARD_SPLIT_WIDTH = 2 * PROPS.COLUMN_WIDTH;
+PROPS.MIDDLE_WIDTH = 6 * PROPS.COLUMN_WIDTH;
 
 PROPS.context.strokeStyle='purple'
 
@@ -39,19 +44,17 @@ class Piece {
     x;
     y;
     color;
+    image;
 
     constructor(x, y, color) {
         this.x = x;
         this.y = y;
         this.color = color;
+        this.image = color == PROPS.WHITE ? ASSETS.WHITE_PIECE : ASSETS.BLACK_PIECE;
     } 
 
     draw() {
-        PROPS.context.beginPath();
-        PROPS.context.arc(this.x, this.y, PROPS.PIECE_RADIUS, 0, PROPS.PIx2);
-        PROPS.context.fillStyle = this.color;
-        PROPS.context.fill();
-        PROPS.context.stroke();
+        PROPS.context.drawImage(this.image, this.x, this.y, PROPS.PIECE_DIAMETER, PROPS.PIECE_DIAMETER);
     }
 }
 
@@ -66,7 +69,7 @@ class Column {
 
 
     constructor(base, direction, x, maxPieceHeight=PROPS.COLUMN_MAX_PIECE_HEIGHT) {
-        this.base = base;
+        this.base = direction < 0 ? base - PROPS.PIECE_DIAMETER : base;
         this.direction = direction;
         this.x = x;
         this.maxPieceHeight = maxPieceHeight;
@@ -76,7 +79,9 @@ class Column {
     init(pieceCount, pieceColor) {
         const pieceDistance = this._calculatePieceDistance(this.maxPieceHeight, pieceCount);
         for(let index = 0; index < pieceCount; index++) {
-            this.pieces.push(new Piece(this.x, this.base + index * pieceDistance * this.direction, pieceColor));
+            const pieceX = this.x + PROPS.COLUMN_WIDTH / 2 - PROPS.PIECE_RADIUS;
+            const pieceY = this.base + index * pieceDistance * this.direction;
+            this.pieces.push(new Piece(pieceX, pieceY, pieceColor));
         }
     }
 
@@ -94,7 +99,10 @@ class Column {
 
     getNewPiecePosition() {
         const pieceDistance = this._calculatePieceDistance(this.maxPieceHeight, this.pieces.length + 1);
-        return { x: this.x, y: this.base + this.direction * pieceDistance * this.pieces.length };
+        return { 
+            x: this.x + PROPS.COLUMN_WIDTH / 2 - PROPS.PIECE_RADIUS, 
+            y: this.base + this.direction * pieceDistance * this.pieces.length
+        };
     }
 
     addTopPiece(piece) {
@@ -132,29 +140,27 @@ class Column {
     containsCoordinates(mousePos) {
         //console.log(`x: ${x}, y: ${y}`);
 
-        if (this.x + PROPS.PIECE_RADIUS < mousePos.x || this.x - PROPS.PIECE_RADIUS > mousePos.x) {
+        if (this.x + PROPS.COLUMN_WIDTH < mousePos.x || this.x - PROPS.COLUMN_WIDTH > mousePos.x) {
             return false;
         }
         if (this.direction > 0) {
-            return this.base - PROPS.PIECE_RADIUS < mousePos.y && this.base + this.maxPieceHeight * PROPS.PIECE_DIAMETER + PROPS.PIECE_RADIUS > mousePos.y;
+            return this.base < mousePos.y && this.base + this.maxPieceHeight * PROPS.PIECE_DIAMETER + PROPS.PIECE_RADIUS > mousePos.y;
         } else {
-            return this.base + PROPS.PIECE_RADIUS > mousePos.y && this.base - this.maxPieceHeight * PROPS.PIECE_DIAMETER - PROPS.PIECE_RADIUS < mousePos.y;
+            return this.base + PROPS.PIECE_DIAMETER > mousePos.y && this.base - (this.maxPieceHeight - 1) * PROPS.PIECE_DIAMETER - PROPS.PIECE_RADIUS < mousePos.y;
         }
     }
 
     //TODO: Remove this at some point
     draw() {
         PROPS.context.beginPath();
-        PROPS.context.moveTo(this.x - PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
-        PROPS.context.lineTo(this.x, this.base + this.direction * this.maxPieceHeight * PROPS.PIECE_DIAMETER);
-        PROPS.context.lineTo(this.x + PROPS.PIECE_RADIUS, this.base - this.direction * PROPS.PIECE_RADIUS);
-        PROPS.context.closePath();
-        PROPS.context.stroke();
+        const startY = this.direction === 1 ? this.base : this.base - (this.maxPieceHeight - 1) * PROPS.PIECE_DIAMETER;
+        PROPS.context.rect(this.x, startY, PROPS.COLUMN_WIDTH, this.maxPieceHeight * PROPS.PIECE_DIAMETER);
+        // PROPS.context.stroke(); // uncomment to display column area
+
         if (this.highlighted) {
             PROPS.context.fillStyle = PROPS.HIGHLIGHT;
             PROPS.context.fill();
         }
-        
     }
 }
 
@@ -164,41 +170,43 @@ class Board {
 
     constructor() {
         let index = 0;
-        this.columnsById.set('CW', new Column(PROPS.UPPER_BASE + 2 * PROPS.PIECE_DIAMETER, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
-        this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('D', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('E', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('F', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('CW', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH, 5));
+        this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('D', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('E', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('F', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
 
-        this.columnsById.set('SB', new Column(PROPS.UPPER_BASE + 2 * PROPS.PIECE_DIAMETER, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
+        this.columnsById.set('SB', new Column(PROPS.HEIGHT / 3, -1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
 
-        this.columnsById.set('G', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('H', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('I', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('J', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('K', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('L', new Column(PROPS.UPPER_BASE, 1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        index = 7;
+        this.columnsById.set('G', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('H', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('I', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('J', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('K', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('L', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
 
 
         index = 0;
-        this.columnsById.set('CB', new Column(PROPS.LOWER_BASE - 2 * PROPS.PIECE_DIAMETER, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
-        this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('P', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('Q', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('R', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        this.columnsById.set('CB', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH, 5));
+        this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('P', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('Q', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('R', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
 
-        this.columnsById.set('SW', new Column(PROPS.LOWER_BASE - 2 * PROPS.PIECE_DIAMETER, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER, 5));
+        this.columnsById.set('SW', new Column(PROPS.HEIGHT * 2 / 3, 1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
 
-        this.columnsById.set('S', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('T', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('U', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
-        this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.PIECE_RADIUS + index++ * PROPS.PIECE_DIAMETER));
+        index = 7;
+        this.columnsById.set('S', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('T', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('U', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
 
         PROPS.canvas.addEventListener('click', (ev) => {
             if (this.columnClickListener === null) {
