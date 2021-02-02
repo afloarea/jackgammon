@@ -110,18 +110,51 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             return originalMoves;
         }
 
-        final Map<List<Integer>, List<Move>> movesByDice = originalMoves.collect(Collectors.groupingBy(Move::getDistances));
+        final Map<Set<Integer>, List<Move>> movesByDice = originalMoves.
+                collect(Collectors.groupingBy(move -> new HashSet<>(move.getDistances())));
         final Stream<Move> moves = movesByDice.values().stream().flatMap(Collection::stream);
 
-        if (movesByDice.keySet().size() != 2) { // if there are composite moves or only one dice value was used
+        if (movesByDice.keySet().size() != 2) {
             return moves;
         }
 
+        // either both are sets with one value or one is with one value and the other with 2
+        if (movesByDice.keySet().stream().allMatch(diceValues -> diceValues.size() == 1)) {
+            return maximizeForSimpleMoves(movesByDice, moves);
+        }
+
+        return maximizeForCompositeMove(movesByDice, moves);
+    }
+
+    private Stream<Move> maximizeForCompositeMove(Map<Set<Integer>, List<Move>> movesByDice, Stream<Move> moves) {
+        final var bothDiceOptional = movesByDice.entrySet().stream()
+                .filter(entry -> entry.getKey().size() == 2 && entry.getValue().size() == 1)
+                .map(Map.Entry::getKey)
+                .findFirst();
+
+        if (bothDiceOptional.isEmpty()) {
+            return moves;
+        }
+
+        final var bothDice = bothDiceOptional.get();
+        final var diceWithNoMoves = bothDice.stream()
+                .map(dice -> movesByDice.getOrDefault(Set.of(dice), Collections.emptyList()))
+                .findFirst();
+
+        if (diceWithNoMoves.isEmpty()) {
+            return moves;
+        }
+
+        final var singleCompositeMove = movesByDice.get(bothDice).get(0);
+        return moves.filter(move -> singleCompositeMove.getSource().getId().equals(move.getSource().getId()));
+    }
+
+    private Stream<Move> maximizeForSimpleMoves(Map<Set<Integer>, List<Move>> movesByDice, Stream<Move> moves) {
         final Integer firstDice = currentDice.get(0);
         final Integer secondDice = currentDice.get(1);
 
-        final var firstConstrained = findConstrainedColumn(movesByDice.get(List.of(firstDice)));
-        final var secondConstrained = findConstrainedColumn(movesByDice.get(List.of(secondDice)));
+        final var firstConstrained = findConstrainedColumn(movesByDice.get(Set.of(firstDice)));
+        final var secondConstrained = findConstrainedColumn(movesByDice.get(Set.of(secondDice)));
 
         if (firstConstrained.isPresent() && secondConstrained.isPresent()
                 || firstConstrained.isEmpty() && secondConstrained.isEmpty()) {

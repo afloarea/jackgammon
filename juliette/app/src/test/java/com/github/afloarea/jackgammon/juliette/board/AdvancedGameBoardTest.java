@@ -301,6 +301,19 @@ class AdvancedGameBoardTest {
         Assertions.assertSame(Direction.FORWARD, board.getWinningDirection());
     }
 
+    @Test
+    void testForcedComposite() {
+        final var board = BoardFactory.build(new int[][]{
+                new int[]{-3, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, -4},
+                new int[]{-1, 2, 1, 2, 0, -3, 2, -4, 0, 0, 0, 0}
+        });
+        final var diceResult = new DiceResult(6, 3);
+
+        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+
+        Assertions.assertEquals(Set.of(buildMove(0, 3), buildMove(0, 9)), board.getCurrentDirectionPossibleMoves());
+    }
+
     private GameMove buildMove(int from, int to) {
         return new GameMove(IDS_BY_POSITION.get(from), IDS_BY_POSITION.get(to));
     }
