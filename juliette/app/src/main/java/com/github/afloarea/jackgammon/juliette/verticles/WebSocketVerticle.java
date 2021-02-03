@@ -53,9 +53,8 @@ public final class WebSocketVerticle extends AbstractVerticle {
         final var clientId = msg.headers().get(Headers.CLIENT_ID);
         LOG.info("Disconnecting client {}", clientId);
         final var webSocket = webSocketByClientId.remove(clientId);
-        webSocket.close((short) 1001, msg.body()).onComplete(ar -> {
-            LOG.info("Disconnecting {} succeeded: {}", clientId, ar.succeeded());
-        });
+        webSocket.close((short) 1001, msg.body()).onComplete(ar ->
+                LOG.info("Disconnecting {} succeeded: {}", clientId, ar.succeeded()));
     }
 
     private void handleWebSocket(ServerWebSocket webSocket) {
@@ -64,7 +63,7 @@ public final class WebSocketVerticle extends AbstractVerticle {
         webSocketByClientId.put(clientId, webSocket);
 
         webSocket.textMessageHandler(msg -> vertx.eventBus().send(
-                "handlePlayerMessage",
+                Endpoints.HANDLE_INCOMING_MESSAGE,
                 Json.decodeValue(msg, ClientToServerEvent.class),
                 new DeliveryOptions().addHeader(Headers.CLIENT_ID, clientId)));
 
@@ -72,8 +71,8 @@ public final class WebSocketVerticle extends AbstractVerticle {
         webSocket.closeHandler(v -> LOG.info("WebSocket closed"));
         webSocket.endHandler(v -> {
             LOG.info("WebSocket ended");
-            vertx.eventBus().send(
-                    "handleDisconnect",
+            vertx.eventBus().publish(
+                    Endpoints.HANDLE_DISCONNECT,
                     "Client disconnected",
                     new DeliveryOptions().addHeader(Headers.CLIENT_ID, clientId));
         });

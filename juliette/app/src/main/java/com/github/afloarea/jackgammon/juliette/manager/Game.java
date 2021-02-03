@@ -10,6 +10,8 @@ public interface Game {
 
     GameToPlayersMessage init();
 
+    boolean isOver();
+
     static Game setUpGame(Player player1, Player player2) {
         player1.setOpponent(player2);
         player2.setOpponent(player1);

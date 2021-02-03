@@ -29,6 +29,11 @@ public class DefaultGame implements Game {
     }
 
     @Override
+    public boolean isOver() {
+        return board.isGameComplete();
+    }
+
+    @Override
     public GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message) {
         if (message instanceof PlayerRollMessage) {
             return handleRoll(playerId, opponentId, (PlayerRollMessage) message);
