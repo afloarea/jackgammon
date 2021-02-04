@@ -7,8 +7,7 @@ import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.messages.server.*;
-import com.github.afloarea.jackgammon.juliette.verticles.MatchWatcherVerticle;
-import com.github.afloarea.jackgammon.juliette.verticles.WebSocketVerticle;
+import com.github.afloarea.jackgammon.juliette.verticles.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
@@ -23,8 +22,9 @@ public class App {
         final var vertx = Vertx.vertx();
         setUpCodecs(vertx);
 
-        vertx.deployVerticle(MatchWatcherVerticle.class.getName()).onComplete(ar ->
-                vertx.deployVerticle(WebSocketVerticle.class.getName()));
+        vertx.deployVerticle(MatchMakingVerticle.class.getName()).onComplete(ar ->
+                vertx.deployVerticle(DispatcherVerticle.class.getName()).onComplete(r ->
+                        vertx.deployVerticle(WebSocketVerticle.class.getName())));
 
     }
 
@@ -38,6 +38,7 @@ public class App {
         setUpCodecForClass(vertx, PromptMoveMessage.class);
         setUpCodecForClass(vertx, NotifyMoveMessage.class);
         setUpCodecForClass(vertx, NotifyGameEndedMessage.class);
+        setUpCodecForClass(vertx, RegistrationInfo.class);
     }
 
     private static <T> void setUpCodecForClass(Vertx vertx, Class<T> targetClass) {
