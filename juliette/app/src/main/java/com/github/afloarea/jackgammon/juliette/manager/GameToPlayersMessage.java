@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class GameToPlayersMessage {
+public final class GameToPlayersMessage {
     private final Map<String, Collection<GameToPlayerMessage>> messagesByPlayer;
 
     private GameToPlayersMessage(Map<String, Collection<GameToPlayerMessage>> messagesByPlayer) {

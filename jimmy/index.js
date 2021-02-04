@@ -9,7 +9,7 @@ displayPrompt().then(input => {
     url: `ws://${window.location.hostname}:8080/play`,
     handleOpen: function(e, socket) {
       console.log('connection opened');
-      sendJoinMessage(input.name, socket);
+      sendJoinMessage(input, socket);
     },
     handleClose: function(e) {
       if (e.wasClean) {
@@ -38,12 +38,17 @@ displayPrompt().then(input => {
   });
 });
 
-function sendJoinMessage(name, socket) {
+function sendJoinMessage(input, socket) {
   const msg = {
     type: "join",
-    playerName: name,
-    ready: true
+    playerName: input.name,
+    options: {
+      mode: input['play-mode'],
+    }
   };
+  if (input['play-mode'] === 'private') {
+    msg.options.keyword = input.keyword;
+  }
 
   socket.send(JSON.stringify(msg));
 }
