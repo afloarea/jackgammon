@@ -9,12 +9,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class MatchMakingVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MatchMakingVerticle.class);
 
-    //private final Map<String, Deque<Player>> waitingPlayersByKeyword = new HashMap<>();
-    private final Deque<Player> waitingPlayers = new ArrayDeque<>();
+    private final Map<String, Deque<Player>> waitingPlayersByKeyword = new HashMap<>();
 
     @Override
     public void start() {
@@ -27,6 +28,9 @@ public final class MatchMakingVerticle extends AbstractVerticle {
         final String playerName = joinMessage.body().getPlayerName();
         final Player newPlayer = new Player(playerId, playerName);
 
+        final String keyword = joinMessage.body().getKeyword();
+        final Deque<Player> waitingPlayers = waitingPlayersByKeyword.computeIfAbsent(keyword, k -> new ArrayDeque<>());
+
         if (waitingPlayers.isEmpty()) {
             waitingPlayers.add(newPlayer);
             return;
@@ -34,12 +38,15 @@ public final class MatchMakingVerticle extends AbstractVerticle {
 
         final Player opponent = waitingPlayers.removeFirst();
 
+        LOG.info("Creating new game (keyword {}) for players: {}, {}", keyword, playerName, opponent.getName());
         vertx.deployVerticle(new GameVerticle(opponent, newPlayer));
     }
 
     private void handleDisconnect(Message<String> msg) {
         final String playerId = msg.headers().get(Headers.CLIENT_ID);
-        if (waitingPlayers.removeIf(player -> player.getId().equals(playerId))) {
+        final boolean removed = waitingPlayersByKeyword.values().stream()
+                .anyMatch(queue -> queue.removeIf(player -> player.getId().equals(playerId)));
+        if (removed) {
             LOG.info("Disconnected waiting player with id {}", playerId);
         }
     }

@@ -1,5 +1,8 @@
 {
   "type": "join",
   "playerName": "Papagal",
-  "ready": false
+  "options": {
+    "mode": "private",
+    "keyword": "word"
+  }
 }

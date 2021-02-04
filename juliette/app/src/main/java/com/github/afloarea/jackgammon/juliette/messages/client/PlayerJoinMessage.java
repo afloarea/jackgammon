@@ -9,13 +9,13 @@ import java.util.StringJoiner;
 public final class PlayerJoinMessage implements ClientToServerEvent {
 
     private final String playerName;
-    private final boolean playerReady;
+    private final Options options;
 
     @JsonCreator
     public PlayerJoinMessage(@JsonProperty("playerName") String playerName,
-                             @JsonProperty("ready") boolean playerReady) {
+                             @JsonProperty("options") Options options) {
         this.playerName = playerName;
-        this.playerReady = playerReady;
+        this.options = options;
     }
 
     @Override
@@ -23,19 +23,19 @@ public final class PlayerJoinMessage implements ClientToServerEvent {
         if (this == o) return true;
         if (!(o instanceof PlayerJoinMessage)) return false;
         PlayerJoinMessage that = (PlayerJoinMessage) o;
-        return playerReady == that.playerReady && Objects.equals(playerName, that.playerName);
+        return Objects.equals(options, that.options) && Objects.equals(playerName, that.playerName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(playerName, playerReady);
+        return Objects.hash(playerName, options);
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", PlayerJoinMessage.class.getSimpleName() + "[", "]")
                 .add("playerName='" + playerName + "'")
-                .add("playerReady=" + playerReady)
+                .add("options=" + options)
                 .toString();
     }
 
@@ -43,8 +43,51 @@ public final class PlayerJoinMessage implements ClientToServerEvent {
         return playerName;
     }
 
-    public boolean isPlayerReady() {
-        return playerReady;
+    public String getKeyword() {
+        return options.keyword;
+    }
+
+    public Mode getMode() {
+        return options.mode;
+    }
+
+    public static class Options {
+        private final Mode mode;
+        private final String keyword;
+
+        @JsonCreator
+        public Options(@JsonProperty(value = "mode", defaultValue = "singleplayer") Mode mode,
+                       @JsonProperty(value = "keyword", defaultValue = "all") String keyword) {
+            this.mode = mode;
+            this.keyword = keyword == null ? "all" : keyword;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Options options = (Options) o;
+            return mode == options.mode && Objects.equals(keyword, options.keyword);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(mode, keyword);
+        }
+
+        @Override
+        public String toString() {
+            return "Options{" +
+                    "mode=" + mode +
+                    ", keyword='" + keyword + '\'' +
+                    '}';
+        }
+    }
+
+    public enum Mode {
+        @JsonProperty("multiplayer") MULTIPLAYER,
+        @JsonProperty("singleplayer") SINGLEPLAYER,
+        @JsonProperty("private") PRIVATE,
     }
 
 }

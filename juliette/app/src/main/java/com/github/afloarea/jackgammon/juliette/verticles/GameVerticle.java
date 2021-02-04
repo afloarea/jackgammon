@@ -63,6 +63,7 @@ public final class GameVerticle extends AbstractVerticle {
     }
 
     private void undeploy(Set<String> playersToDisconnect) {
+        LOG.info("Ending game with players: {}", playersById.keySet());
         final String message = playersToDisconnect.size() == 1 ? "Opponent disconnected" : "Game over";
         playersToDisconnect.forEach(playerId ->
                 vertx.eventBus().send(Endpoints.DISCONNECT_PLAYER,

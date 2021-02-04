@@ -50,7 +50,7 @@ public class DefaultGame implements Game {
                 firstPlayer.getId(), List.of(new InitGameMessage(
                         firstPlayer.getName(), secondPlayer.getName(), true), new PromptRollMessage()),
                 secondPlayer.getId(), List.of(new InitGameMessage(
-                        firstPlayer.getName(), secondPlayer.getName(), false)));
+                        secondPlayer.getName(), firstPlayer.getName(), false)));
     }
 
     private GameToPlayersMessage handleRoll(String playerId, String opponentId, PlayerRollMessage rollMessage) {

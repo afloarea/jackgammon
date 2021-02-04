@@ -9,13 +9,15 @@ public class TestJson {
     private static final String json = "{\n" +
             "  \"type\": \"join\",\n" +
             "  \"playerName\": \"Papagal\",\n" +
-            "  \"ready\": false\n" +
+            "  \"options\": {\n" +
+            "    \"mode\": \"private\"\n" +
+            "  }\n" +
             "}";
 
     @Test
     void test() {
         final var msg = Json.decodeValue(json, ClientToServerEvent.class);
-        System.out.println(Json.encode(msg));
+        System.out.println(msg);
     }
 
 }
