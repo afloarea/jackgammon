@@ -28,6 +28,12 @@ public final class MatchMakingVerticle extends AbstractVerticle {
         final String playerName = joinMessage.body().getPlayerName();
         final Player newPlayer = new Player(playerId, playerName);
 
+        if (joinMessage.body().getMode() == PlayerJoinMessage.Mode.SINGLEPLAYER) {
+            LOG.info("Creating new single player game for player: {}", playerName);
+            vertx.deployVerticle(new SinglePlayerGameVerticle(newPlayer));
+            return;
+        }
+
         final String keyword = joinMessage.body().getKeyword();
         final Deque<Player> waitingPlayers = waitingPlayersByKeyword.computeIfAbsent(keyword, k -> new ArrayDeque<>());
 

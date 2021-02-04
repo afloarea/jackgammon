@@ -19,4 +19,8 @@ public final class GameToPlayersMessage {
     public void forEachPlayerMessages(BiConsumer<String, Collection<GameToPlayerMessage>> action) {
         messagesByPlayer.forEach(action);
     }
+
+    public Collection<GameToPlayerMessage> getMessagesForPlayer(String playerId) {
+        return messagesByPlayer.get(playerId);
+    }
 }
