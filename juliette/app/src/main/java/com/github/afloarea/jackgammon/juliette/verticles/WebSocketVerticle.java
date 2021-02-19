@@ -24,14 +24,15 @@ public final class WebSocketVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        LOG.info("Starting WebSocketVerticle...");
+        final int port = Integer.parseInt(System.getenv().getOrDefault("JACKGAMMON_PORT", "8080"));
+        LOG.info("Starting WebSocketVerticle on port {} ...", port);
 
         vertx.eventBus().<ServerToClientEvent>consumer(Endpoints.SEND_TO_PLAYER).handler(this::handleServerToClientMessage);
         vertx.eventBus().<String>consumer(Endpoints.DISCONNECT_PLAYER).handler(this::handlePlayerDisconnect);
 
         vertx.createHttpServer()
                 .webSocketHandler(this::handleWebSocket)
-                .listen(8080)
+                .listen(port)
                 .onSuccess(startedServer -> httpServer = startedServer)
                 .<Void>mapEmpty()
                 .onComplete(startPromise);
