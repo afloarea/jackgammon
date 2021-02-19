@@ -20,6 +20,14 @@ PROPS.COLUMN_WIDTH = PROPS.WIDTH / 16;
 PROPS.EDGE_WIDTH = PROPS.COLUMN_WIDTH;
 PROPS.BOARD_SPLIT_WIDTH = 2 * PROPS.COLUMN_WIDTH;
 PROPS.MIDDLE_WIDTH = 6 * PROPS.COLUMN_WIDTH;
+PROPS.PLAYING_CLOCKWISE_TAGS = [
+    'CW', ...'ABCDEF', 'SB', ...'GHIJKL',
+    'CB', ...'MNOPQR', 'SW', ...'STUVWX'
+];
+PROPS.PLAYING_COUNTER_CLOCKWISE_TAGS = [
+    'CB', ...'MNOPQR', 'SW', ...'STUVWX',
+    'CW', ...'ABCDEF', 'SB', ...'GHIJKL'
+];
 
 PROPS.context.strokeStyle='purple'
 
@@ -168,46 +176,59 @@ class Board {
     columnsById = new Map();
     movingPieces = [];
 
-    constructor() {
+    static _buildColumns() {
+        const columnLayout = [];
+        
         let index = 0;
-        this.columnsById.set('CW', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH, 5));
-        this.columnsById.set('A', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('B', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('C', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('D', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('E', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('F', new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        // upper collect column
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH, 5));
+        // upper left columns
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, index++ * PROPS.COLUMN_WIDTH));
 
-        this.columnsById.set('SB', new Column(PROPS.HEIGHT / 3, -1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
+        // upper suspend column
+        columnLayout.push(new Column(PROPS.HEIGHT / 3, -1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
 
+        // upper right columns
         index = 7;
-        this.columnsById.set('G', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('H', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('I', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('J', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('K', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('L', new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.UPPER_BASE, 1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
 
         index = 0;
-        this.columnsById.set('CB', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH, 5));
-        this.columnsById.set('M', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('N', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('O', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('P', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('Q', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('R', new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        // lower collect column
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH, 5));
+        // lower left columns
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, index++ * PROPS.COLUMN_WIDTH));
 
-        this.columnsById.set('SW', new Column(PROPS.HEIGHT * 2 / 3, 1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
+        // lower suspend column
+        columnLayout.push(new Column(PROPS.HEIGHT * 2 / 3, 1, PROPS.WIDTH / 2 - PROPS.COLUMN_WIDTH / 2, 5));
 
+        // lower right columns
         index = 7;
-        this.columnsById.set('S', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('T', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('U', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('V', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('W', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
-        this.columnsById.set('X', new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
+        columnLayout.push(new Column(PROPS.LOWER_BASE, -1, PROPS.WIDTH - index-- * PROPS.COLUMN_WIDTH));
 
+        return columnLayout;
+    }
+
+    _initColumnListener() {
         PROPS.canvas.addEventListener('click', (ev) => {
             if (this.columnClickListener === null) {
                 return;
@@ -225,13 +246,27 @@ class Board {
     }
 
     initColumns(boardColumns, playingColor) {
-        const mainColor = playingColor === "black" ? PROPS.BLACK : PROPS.WHITE;
-        const secondColor = playingColor === "black" ? PROPS.WHITE : PROPS.BLACK;
+        let mainColor;
+        let secondColor;
+        let columnTags;
+        if (playingColor === 'black') {
+            mainColor = PROPS.BLACK;
+            secondColor = PROPS.WHITE;
+            columnTags = PROPS.PLAYING_CLOCKWISE_TAGS;
+        } else {
+            mainColor = PROPS.WHITE;
+            secondColor = PROPS.BLACK;
+            columnTags = PROPS.PLAYING_COUNTER_CLOCKWISE_TAGS;
+        }
+
+        const generatedColumns = Board._buildColumns();
+        for (let index = 0; index < columnTags.length; index++) {
+            this.columnsById.set(columnTags[index], generatedColumns[index]);
+        }
+        this._initColumnListener();
+
         boardColumns.player.forEach(column => this.columnsById.get(column.columnId).init(column.pieces, mainColor));
         boardColumns.opponent.forEach(column => this.columnsById.get(column.columnId).init(column.pieces, secondColor));
-
-        // maybe remove this? or move it somewhere else
-        this.draw();
     }
 
 
