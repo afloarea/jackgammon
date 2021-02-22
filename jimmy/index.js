@@ -1,3 +1,5 @@
+const BACKEND = `ws://${window.location.hostname}:8080/`;
+
 const diceButton = document.getElementById('roll');
 diceButton.disabled = true;
 
@@ -6,7 +8,7 @@ const board = new Board();
 displayPrompt().then(input => {
   
   const socketConfig = {
-    url: `ws://${window.location.hostname}:8080/play`,
+    url: BACKEND,
     handleOpen: function(e, socket) {
       console.log('connection opened');
       sendJoinMessage(input, socket);
