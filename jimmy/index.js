@@ -1,4 +1,4 @@
-const BACKEND = `ws://${window.location.hostname}:8080/`;
+const BACKEND = `ws://${window.location.hostname}:8080/play`;
 
 const diceButton = document.getElementById('roll');
 diceButton.disabled = true;
