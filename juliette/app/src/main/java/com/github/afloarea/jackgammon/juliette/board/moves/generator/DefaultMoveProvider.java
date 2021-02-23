@@ -1,14 +1,15 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
 import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
-import com.github.afloarea.jackgammon.juliette.board.Constants;
-import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 import com.github.afloarea.jackgammon.juliette.board.Move;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.github.afloarea.jackgammon.juliette.board.Constants.HOME_START;
 
 public final class DefaultMoveProvider implements PossibleMovesProvider {
     private final ColumnSequence columnSequence;
@@ -69,7 +70,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             return sourceStream.flatMap(hops -> computeBasic(firstColumn, hops, currentDirection));
         }
 
-        final int uncollectablePieces = columnSequence.countPiecesUpToIndex(Constants.HOME_START, currentDirection);
+        final int uncollectablePieces = columnSequence.countPiecesUpToIndex(HOME_START, currentDirection);
         if (uncollectablePieces > 1) { // there can be no single piece collected
             return Stream.of(currentDice, reversed)
                     .flatMap(hops -> availableColumns.stream()
@@ -183,7 +184,18 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
         if (original == null || original.size() != 1) {
             return Optional.empty();
         }
-        return Optional.of(original.get(0).getSource())
-                .filter(column -> column.getPieceCount() == 1);
+
+        final var move = original.get(0);
+        if (move.getSource().getPieceCount() != 1) {
+            return Optional.empty();
+        }
+        
+        // all other pieces are in home area or collected and target column is in home area
+        final int piecesOutsideHome = columnSequence.countPiecesUpToIndex(HOME_START, currentDirection);
+        if (piecesOutsideHome == 1 && columnSequence.getColumnIndex(move.getTarget(), currentDirection) >= HOME_START) {
+            return Optional.empty();
+        }
+
+        return Optional.of(move.getSource());
     }
 }
