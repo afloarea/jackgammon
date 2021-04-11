@@ -19,16 +19,19 @@ h1 {
     width: 25px;
 }
 
+.centered-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 canvas {
     background-image: url(assets/board.svg);
     background-repeat: no-repeat;
     background-size: cover;
     border:1px solid #000000;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
+    width: min(100%, 900px);
+    aspect-ratio: 3/2;
 }
 
 .row {
@@ -50,7 +53,7 @@ canvas {
 }
 
 .subtitle {
-    width: 900px;
+    width: min(100%, 900px);
     margin-left: auto;
     margin-right: auto;
 }
@@ -65,16 +68,6 @@ canvas {
     margin: 4px;
 }
 
-
-@media only screen and (max-width: 900px) and (orientation: portrait) {
-    canvas {
-        width: 100%;
-    }
-
-    .subtitle {
-        width: 100%;
-    }
-}
 @media only screen and (max-width: 600px) and (orientation: portrait) {
     h1 {
         display: none;
@@ -83,7 +76,8 @@ canvas {
 
 @media only screen and (max-height: 600px) and (orientation: landscape) {
     canvas {
-        height: 80vh;
+        width: auto;
+        height: 85vh;
     }
     h1 {
         display: none;
