@@ -1,7 +1,5 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
-import com.github.afloarea.jackgammon.juliette.IllegalGameActionException;
-
 import java.util.Objects;
 
 public final class BoardColumn {

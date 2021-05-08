@@ -1,6 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
-import com.github.afloarea.jackgammon.juliette.DiceResult;
+import com.github.afloarea.jackgammon.juliette.board.DiceResult;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
 import java.util.Objects;

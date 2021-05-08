@@ -1,12 +1,11 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
-import com.github.afloarea.jackgammon.juliette.DiceResult;
 import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.IllegalGameActionException;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.moves.executor.DefaultMoveExecutor;
 import com.github.afloarea.jackgammon.juliette.board.moves.executor.MoveExecutor;
 import com.github.afloarea.jackgammon.juliette.board.moves.generator.DefaultMoveProvider;
+import com.github.afloarea.jackgammon.juliette.board.moves.generator.PossibleMovesProvider;
 
 import java.util.*;
 import java.util.function.Function;
@@ -23,7 +22,7 @@ public final class AdvancedGameBoard implements GameBoard {
     private final List<Integer> remainingDiceValues = new ArrayList<>();
 
     private final ColumnSequence columns;
-    private final DefaultMoveProvider defaultMoveProvider;
+    private final PossibleMovesProvider defaultMoveProvider;
     private final MoveExecutor moveExecutor;
 
     public AdvancedGameBoard(ColumnSequence columns) {
@@ -34,7 +33,7 @@ public final class AdvancedGameBoard implements GameBoard {
 
     @Override
     public void updateDiceForDirection(Direction direction, DiceResult dice) {
-        performRollValidation(direction, dice);
+        validateDirection(direction);
 
         currentDirection = direction;
         dice.stream().boxed().forEach(remainingDiceValues::add);
@@ -42,15 +41,15 @@ public final class AdvancedGameBoard implements GameBoard {
         updatePossibleMoves();
     }
 
-    private void performRollValidation(Direction direction, DiceResult dice) {
+    private void validateDirection(Direction direction) {
         if (isGameComplete()) {
             throw new IllegalGameActionException("Unable to roll dice. Game is finished");
         }
-        if (direction == Direction.NONE) {
-            throw new IllegalGameActionException("None color cannot update the dice");
-        }
         if (!remainingDiceValues.isEmpty()) {
             throw new IllegalGameActionException("Cannot update dice. Turn is not yet over");
+        }
+        if (direction == null || direction == Direction.NONE) {
+            throw new IllegalGameActionException("Invalid direction provided");
         }
         if (direction != currentDirection.reverse() && currentDirection != Direction.NONE) {
             throw new IllegalGameActionException("Wrong player color rolled dice.");

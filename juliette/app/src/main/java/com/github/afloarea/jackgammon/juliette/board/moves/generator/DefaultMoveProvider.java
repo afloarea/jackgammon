@@ -36,22 +36,6 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
     }
 
     private Stream<Move> computePossibleMoves() {
-        // FILTERING
-        // filter columns, starting with the suspended column, so that only those that can move in the given direction are kept
-
-        // ENTER
-        // if after filtering, the suspended column is kept and cannot advance then return an empty result
-        // if the suspended column can advance, but there are still elements after moving, then return the single result
-
-
-        // calculate how many elements are in the home area + collected
-        // if all pieces are there, then simply compute collect type moves
-
-        // for each column, try to advance as much as possible
-        // if all but one are there, then attempt to collect the piece after advancing as much as possible
-
-        //------------------------------------
-
         final var reversed = new ArrayList<Integer>();
         if (isSimpleDice(currentDice)) {
             reversed.addAll(currentDice);
@@ -70,8 +54,8 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             return sourceStream.flatMap(hops -> computeBasic(firstColumn, hops, currentDirection));
         }
 
-        final int uncollectablePieces = columnSequence.countPiecesUpToIndex(HOME_START, currentDirection);
-        if (uncollectablePieces > 1) { // there can be no single piece collected
+        final int noncollectablePieces = columnSequence.countPiecesUpToIndex(HOME_START, currentDirection);
+        if (noncollectablePieces > 1) { // there can be no single piece collected
             return Stream.of(currentDice, reversed)
                     .flatMap(hops -> availableColumns.stream()
                             .flatMap(column -> computeBasic(column, hops, currentDirection)));
@@ -80,7 +64,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
         final Stream<Move> farthestColumnMoves = Stream.of(currentDice, reversed)
                 .flatMap(hops -> computePermissive(firstColumn, hops, currentDirection));
 
-        final var collectableCalculator = uncollectablePieces == 0 ? strictCalculator : basicMoveCalculator;
+        final var collectableCalculator = noncollectablePieces == 0 ? strictCalculator : basicMoveCalculator;
         final Stream<Move> potentiallyCollectableColumnMoves = Stream.of(currentDice, reversed)
                 .flatMap(hops -> availableColumns.subList(1, availableColumns.size()).stream()
                         .flatMap(column -> computeMoves(collectableCalculator, column, hops, currentDirection)));
@@ -104,22 +88,21 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
         return computeMoves(permissiveCalculator, from, hops, direction);
     }
 
-    private Stream<Move> filterMovesToMaximizeDiceValuesUsed(
-            Stream<Move> originalMoves) {
-
+    private Stream<Move> filterMovesToMaximizeDiceValuesUsed(Stream<Move> originalMoves) {
         if (!isSimpleDice(currentDice)) {
             return originalMoves;
         }
 
-        final Map<Set<Integer>, List<Move>> movesByDice = originalMoves.
-                collect(Collectors.groupingBy(move -> new HashSet<>(move.getDistances())));
+        // group by used dice values combinations
+        final Map<Set<Integer>, List<Move>> movesByDice = originalMoves
+                .collect(Collectors.groupingBy(move -> new HashSet<>(move.getDistances())));
         final Stream<Move> moves = movesByDice.values().stream().flatMap(Collection::stream);
 
         if (movesByDice.keySet().size() != 2) {
             return moves;
         }
 
-        // either both are sets with one value or one is with one value and the other with 2
+        // either both are sets with one value or one is with one value and the other with 2 values
         if (movesByDice.keySet().stream().allMatch(diceValues -> diceValues.size() == 1)) {
             return maximizeForSimpleMoves(movesByDice, moves);
         }
@@ -128,26 +111,12 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
     }
 
     private Stream<Move> maximizeForCompositeMove(Map<Set<Integer>, List<Move>> movesByDice, Stream<Move> moves) {
-        final var bothDiceOptional = movesByDice.entrySet().stream()
-                .filter(entry -> entry.getKey().size() == 2 && entry.getValue().size() == 1)
-                .map(Map.Entry::getKey)
-                .findFirst();
+        final var diceSet = Set.of(currentDice.get(0), currentDice.get(1));
+        final Set<String> viableColumnIds = movesByDice.get(diceSet).stream()
+                .map(move -> move.getSource().getId())
+                .collect(Collectors.toSet());
 
-        if (bothDiceOptional.isEmpty()) {
-            return moves;
-        }
-
-        final var bothDice = bothDiceOptional.get();
-        final var diceWithNoMoves = bothDice.stream()
-                .map(dice -> movesByDice.getOrDefault(Set.of(dice), Collections.emptyList()))
-                .findFirst();
-
-        if (diceWithNoMoves.isEmpty()) {
-            return moves;
-        }
-
-        final var singleCompositeMove = movesByDice.get(bothDice).get(0);
-        return moves.filter(move -> singleCompositeMove.getSource().getId().equals(move.getSource().getId()));
+        return moves.filter(move -> viableColumnIds.contains(move.getSource().getId()));
     }
 
     private Stream<Move> maximizeForSimpleMoves(Map<Set<Integer>, List<Move>> movesByDice, Stream<Move> moves) {
@@ -172,6 +141,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             constrainedDice = secondDice;
         }
 
+        // the other (non-constraining) dice value move must be removed from the constrained column if it's present
         return moves.filter(move -> !move.getSource().getId().equals(sourceColumnId)
                 || move.getDistances().contains(constrainedDice));
     }
@@ -181,7 +151,7 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
     }
 
     private Optional<BoardColumn> findConstrainedColumn(List<Move> original) {
-        if (original == null || original.size() != 1) {
+        if (original.size() != 1) {
             return Optional.empty();
         }
 
@@ -190,7 +160,8 @@ public final class DefaultMoveProvider implements PossibleMovesProvider {
             return Optional.empty();
         }
         
-        // all other pieces are in home area or collected and target column is in home area
+        // (all other pieces are in home area or collected) and target column is in home area
+        // in this case the "forced" move (fake forced) will be used to a collect piece after the other move
         final int piecesOutsideHome = columnSequence.countPiecesUpToIndex(HOME_START, currentDirection);
         if (piecesOutsideHome == 1 && columnSequence.getColumnIndex(move.getTarget(), currentDirection) >= HOME_START) {
             return Optional.empty();

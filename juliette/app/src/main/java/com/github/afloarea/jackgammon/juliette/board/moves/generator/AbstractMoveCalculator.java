@@ -1,5 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
+import com.github.afloarea.jackgammon.juliette.board.Constants;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 import com.github.afloarea.jackgammon.juliette.board.Move;
@@ -36,7 +37,7 @@ public abstract class AbstractMoveCalculator implements MoveCalculator {
             usedHops.add(hop);
             moves.add(new Move(
                     columnSequence.getColumn(startIndex, direction),
-                    columnSequence.getColumn(Math.min(25, newIndex), direction),
+                    columnSequence.getColumn(Math.min(Constants.COLLECT_INDEX, newIndex), direction),
                     new ArrayList<>(usedHops)));
             index = newIndex;
         }

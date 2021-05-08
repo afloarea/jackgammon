@@ -6,7 +6,6 @@ public final class Constants {
     public static final int SUSPEND_INDEX       = 0;
     public static final int COLLECT_INDEX       = 25;
     public static final int HOME_START          = 19;
-    public static final int HOME_AND_COLLECT    = 7;
 
     private Constants() {}
 }

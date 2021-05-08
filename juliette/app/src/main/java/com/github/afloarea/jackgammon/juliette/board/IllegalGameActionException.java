@@ -1,4 +1,4 @@
-package com.github.afloarea.jackgammon.juliette;
+package com.github.afloarea.jackgammon.juliette.board;
 
 public class IllegalGameActionException extends RuntimeException {
 

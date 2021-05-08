@@ -1,4 +1,4 @@
-package com.github.afloarea.jackgammon.juliette;
+package com.github.afloarea.jackgammon.juliette.board;
 
 import java.util.Objects;
 import java.util.Random;
@@ -13,9 +13,16 @@ public final class DiceResult {
     private final int dice1;
     private final int dice2;
 
-    public DiceResult(int dice1, int dice2) {
+    private DiceResult(int dice1, int dice2) {
         this.dice1 = dice1;
         this.dice2 = dice2;
+    }
+
+    public static DiceResult of(int dice1, int dice2) {
+        if (dice1 < MIN_DICE || dice1 > MAX_DICE || dice2 < MIN_DICE || dice2 > MAX_DICE) {
+            throw new IllegalArgumentException("Dice values must be between " + MIN_DICE + " and " + MAX_DICE);
+        }
+        return new DiceResult(Math.max(dice1, dice2), Math.min(dice1, dice2));
     }
 
     public boolean isDouble() {
