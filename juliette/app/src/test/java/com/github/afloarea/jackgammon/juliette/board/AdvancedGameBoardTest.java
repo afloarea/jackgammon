@@ -26,27 +26,27 @@ class AdvancedGameBoardTest {
     @Test
     void boardHandlesSimpleRoll() {
         final var board = GameBoard.buildNewBoard();
-        final var diceResult = DiceResult.of(2, 1);
+        final var diceResult = DiceRoll.of(2, 1);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 1));
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 1));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 2));
 
-        assertTrue(board.currentDirectionMovementIsComplete());
+        assertTrue(board.isCurrentTurnDone());
     }
 
     @Test
     void boardHandlesDouble() {
         final var board = GameBoard.buildNewBoard();
-        final var diceResult = DiceResult.of(2, 2);
+        final var diceResult = DiceRoll.of(2, 2);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(2, 4));
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(4, 6));
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 2));
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 2));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(2, 4));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(4, 6));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 2));
 
-        assertTrue(board.currentDirectionMovementIsComplete());
+        assertTrue(board.isCurrentTurnDone());
     }
 
     @Test
@@ -55,11 +55,11 @@ class AdvancedGameBoardTest {
                 {-2, +2, +2, +2, +2, +2, +5, -13, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         }, 1, 0, 0, 0);
-        final var diceResult = DiceResult.of(1, 6);
+        final var diceResult = DiceRoll.of(1, 6);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.FORWARD, 0)));
-        board.executeMoveInDirection(Direction.FORWARD, buildEnter(Direction.FORWARD, 0));
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.CLOCKWISE, 0)));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildEnter(Direction.CLOCKWISE, 0));
     }
 
     @Test
@@ -70,10 +70,10 @@ class AdvancedGameBoardTest {
                 },
                 1, 0, 0, 0
         );
-        final var diceResult = DiceResult.of(6, 6);
+        final var diceResult = DiceRoll.of(6, 6);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        assertTrue(board.isCurrentTurnDone());
     }
 
     @Test
@@ -83,17 +83,17 @@ class AdvancedGameBoardTest {
                         new int[]{+2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 4}
                 }
         );
-        final var diceResult = DiceResult.of(4, 1);
+        final var diceResult = DiceRoll.of(4, 1);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 4));
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(0, 1));
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 4));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(0, 1));
+        assertTrue(board.isCurrentTurnDone());
 
-        final var secondDice = DiceResult.of(6, 6);
+        final var secondDice = DiceRoll.of(6, 6);
 
-        board.updateDiceForDirection(Direction.BACKWARD, secondDice);
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, secondDice);
+        assertTrue(board.isCurrentTurnDone());
     }
 
     @Test
@@ -104,19 +104,19 @@ class AdvancedGameBoardTest {
                 },
                 2, 0, 0, 0
         );
-        final var diceResult = DiceResult.of(4, 3);
+        final var diceResult = DiceRoll.of(4, 3);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        Assertions.assertEquals(Set.of(buildEnter(Direction.FORWARD, 2)), board.getCurrentDirectionPossibleMoves());
-        board.executeMoveInDirection(Direction.FORWARD, buildEnter(Direction.FORWARD, 2));
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        Assertions.assertEquals(Set.of(buildEnter(Direction.CLOCKWISE, 2)), board.getCurrentDirectionPossibleMoves());
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildEnter(Direction.CLOCKWISE, 2));
+        assertTrue(board.isCurrentTurnDone());
 
-        final var secondDice = DiceResult.of(6, 2);
+        final var secondDice = DiceRoll.of(6, 2);
 
-        board.updateDiceForDirection(Direction.BACKWARD, secondDice);
-        assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.BACKWARD, 22)));
-        board.executeMoveInDirection(Direction.BACKWARD, buildEnter(Direction.BACKWARD, 22));
-        Assertions.assertFalse(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, secondDice);
+        assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildEnter(Direction.ANTICLOCKWISE, 22)));
+        board.executeMoveInDirection(Direction.ANTICLOCKWISE, buildEnter(Direction.ANTICLOCKWISE, 22));
+        Assertions.assertFalse(board.isCurrentTurnDone());
     }
 
     @Test
@@ -127,14 +127,14 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 13, 14
         );
-        final var diceResult = DiceResult.of(3, 2);
+        final var diceResult = DiceRoll.of(3, 2);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 22));
-        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 21));
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildCollect(Direction.CLOCKWISE, 22));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildCollect(Direction.CLOCKWISE, 21));
+        assertTrue(board.isCurrentTurnDone());
         assertTrue(board.isGameComplete());
-        Assertions.assertEquals(Direction.FORWARD, board.getWinningDirection());
+        Assertions.assertEquals(Direction.CLOCKWISE, board.getWinningDirection());
     }
 
     @Test
@@ -144,10 +144,10 @@ class AdvancedGameBoardTest {
                         new int[]{-5, -2, -4, -4, 0, 0, 0, 0, 0, 0, 0, 0}
                 }
         );
-        final var diceResult = DiceResult.of(6, 5);
+        final var diceResult = DiceRoll.of(6, 5);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        Assertions.assertEquals(Set.of(buildCollect(Direction.FORWARD, 20)), board.getCurrentDirectionPossibleMoves());
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        Assertions.assertEquals(Set.of(buildCollect(Direction.CLOCKWISE, 20)), board.getCurrentDirectionPossibleMoves());
     }
 
     @Test
@@ -158,13 +158,13 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 0, 2
         );
-        final var diceResult = DiceResult.of(3, 5);
+        final var diceResult = DiceRoll.of(3, 5);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(16, 19));
-        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 19));
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(16, 19));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildCollect(Direction.CLOCKWISE, 19));
 
-        assertTrue(board.currentDirectionMovementIsComplete());
+        assertTrue(board.isCurrentTurnDone());
         assertTrue(board.getCurrentDirectionPossibleMoves().isEmpty());
     }
 
@@ -176,9 +176,9 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 13, 5
         );
-        final var diceResult = DiceResult.of(3, 6);
+        final var diceResult = DiceRoll.of(3, 6);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
         Assertions.assertEquals(Set.of(buildMove(0, 6), buildMove(20, 23)), board.getCurrentDirectionPossibleMoves());
     }
@@ -191,9 +191,9 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 0, 5
         );
-        final var diceResult = DiceResult.of(6, 1);
+        final var diceResult = DiceRoll.of(6, 1);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
         final var availableMoves = board.getCurrentDirectionPossibleMoves();
         assertTrue(availableMoves.contains(buildMove(11, 12)));
@@ -207,12 +207,12 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 0, 0
         );
-        final var diceResult = DiceResult.of(2, 1);
+        final var diceResult = DiceRoll.of(2, 1);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
-        board.executeMoveInDirection(Direction.FORWARD, buildMove(17, 18));
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildMove(17, 18));
         final var availableMoves = board.getCurrentDirectionPossibleMoves();
-        assertTrue(availableMoves.contains(buildCollect(Direction.FORWARD, 22)));
+        assertTrue(availableMoves.contains(buildCollect(Direction.CLOCKWISE, 22)));
     }
 
     @Test
@@ -223,9 +223,9 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 0, 0
         );
-        final var diceResult = DiceResult.of(6, 2);
+        final var diceResult = DiceRoll.of(6, 2);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
         assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildMove(16, 18)));
     }
 
@@ -235,11 +235,11 @@ class AdvancedGameBoardTest {
                         new int[]{2, 0, 0, 0, 0, 5, 0, 2, -1, 0, -1, -5},
                         new int[]{0, 0, 0, 0, -2, -4, 2, -2, 0, 0, 0, 4}
                 });
-        final var diceResult = DiceResult.of(6, 5);
+        final var diceResult = DiceRoll.of(6, 5);
 
-        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
-        board.executeMoveInDirection(Direction.BACKWARD, buildMove(12, 1));
-        assertTrue(board.currentDirectionMovementIsComplete());
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, diceResult);
+        board.executeMoveInDirection(Direction.ANTICLOCKWISE, buildMove(12, 1));
+        assertTrue(board.isCurrentTurnDone());
     }
 
     @Test
@@ -248,9 +248,9 @@ class AdvancedGameBoardTest {
                         new int[]{0, 0, 3, 3, 2, 4, 3, 0, 0, 0, 0, 0},
                         new int[]{0, -5, -2, -1, -3, -3, 0, -1, 0, 0, 0, 0}
                 });
-        final var diceResult = DiceResult.of(3, 3);
+        final var diceResult = DiceRoll.of(3, 3);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
         assertTrue(
                 board.getCurrentDirectionPossibleMoves().stream().noneMatch(move -> move.getTo().equals("CB")));
@@ -265,13 +265,13 @@ class AdvancedGameBoardTest {
                 },
                 0, 0, 3, 6
         );
-        final var diceResult = DiceResult.of(6, 2);
+        final var diceResult = DiceRoll.of(6, 2);
 
-        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, diceResult);
         assertTrue(board.getCurrentDirectionPossibleMoves()
-                .contains(buildCollect(Direction.BACKWARD, 4)));
-        board.executeMoveInDirection(Direction.BACKWARD, buildCollect(Direction.BACKWARD, 4));
-        Assertions.assertFalse(board.currentDirectionMovementIsComplete());
+                .contains(buildCollect(Direction.ANTICLOCKWISE, 4)));
+        board.executeMoveInDirection(Direction.ANTICLOCKWISE, buildCollect(Direction.ANTICLOCKWISE, 4));
+        Assertions.assertFalse(board.isCurrentTurnDone());
     }
 
     @Test
@@ -280,9 +280,9 @@ class AdvancedGameBoardTest {
                         new int[]{0, 0, 0, 0, -1, 5, 0, 3, 0, 0, 0, -4},
                         new int[]{-1, 0, 1, 1, 0, -5, 0, -4, 0, 0, 0, 5}
                 });
-        final var diceResult = DiceResult.of(4, 1);
+        final var diceResult = DiceRoll.of(4, 1);
 
-        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, diceResult);
         assertTrue(board.getCurrentDirectionPossibleMoves().contains(buildMove(21, 20)));
     }
 
@@ -293,13 +293,13 @@ class AdvancedGameBoardTest {
                 new int[]{0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         },
                 0, 0, 14, 9);
-        final var diceResult = DiceResult.of(4, 1);
+        final var diceResult = DiceRoll.of(4, 1);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
-        board.executeMoveInDirection(Direction.FORWARD, buildCollect(Direction.FORWARD, 22));
+        board.executeMoveInDirection(Direction.CLOCKWISE, buildCollect(Direction.CLOCKWISE, 22));
         assertTrue(board.isGameComplete());
-        Assertions.assertSame(Direction.FORWARD, board.getWinningDirection());
+        Assertions.assertSame(Direction.CLOCKWISE, board.getWinningDirection());
     }
 
     @Test
@@ -308,9 +308,9 @@ class AdvancedGameBoardTest {
                 new int[]{-3, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, -4},
                 new int[]{-1, 2, 1, 2, 0, -3, 2, -4, 0, 0, 0, 0}
         });
-        final var diceResult = DiceResult.of(6, 3);
+        final var diceResult = DiceRoll.of(6, 3);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
         Assertions.assertEquals(Set.of(buildMove(0, 3), buildMove(0, 9)), board.getCurrentDirectionPossibleMoves());
     }
@@ -321,9 +321,9 @@ class AdvancedGameBoardTest {
                 new int[]{-3, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, -4},
                 new int[]{-1, 2, 1, 0, 0, -3, 3, -4, 0, 0, 0, 0}
         });
-        final var diceResult = DiceResult.of(6, 3);
+        final var diceResult = DiceRoll.of(6, 3);
 
-        board.updateDiceForDirection(Direction.FORWARD, diceResult);
+        board.updateDiceForDirection(Direction.CLOCKWISE, diceResult);
 
         Assertions.assertEquals(Set.of(buildMove(0, 3), buildMove(0, 9), buildMove(11, 14), buildMove(11, 20)), board.getCurrentDirectionPossibleMoves());
     }
@@ -334,9 +334,9 @@ class AdvancedGameBoardTest {
                 new int[]{2, 2, 1, 2, 4, 3, 0, 1, 0, 0, 0, 0},
                 new int[]{-2, -2, -1, -2, -3, -4, 0, 0, 0, -1, 0, 0}
         });
-        final var diceResult = DiceResult.of(6, 4);
+        final var diceResult = DiceRoll.of(6, 4);
 
-        board.updateDiceForDirection(Direction.BACKWARD, diceResult);
+        board.updateDiceForDirection(Direction.ANTICLOCKWISE, diceResult);
 
         assertTrue(board.getCurrentDirectionPossibleMoves().containsAll(Set.of(buildMove(7, 3), buildMove(7, 1))));
     }
@@ -357,7 +357,7 @@ class AdvancedGameBoardTest {
         if (direction == Direction.NONE) {
             return " ";
         }
-        return direction == Direction.FORWARD ? "B" : "W";
+        return direction == Direction.CLOCKWISE ? "B" : "W";
     }
 
 }

@@ -33,27 +33,21 @@ public final class BoardFactory {
     }
 
     public static AdvancedGameBoard build(int[][] values) {
-
-        final ColumnSequence columnSequence = new ColumnArrangement(translateToColumns(values),
-                0, 0, 0, 0);
-
-        return new AdvancedGameBoard(columnSequence);
+        return build(values, 0, 0, 0, 0);
     }
 
     private static List<BoardColumn> translateToColumns(int[][] values) {
         final int[] upper = values[0];
         final int[] lower = reverse(values[1]);
 
-        final Stream<BoardColumn> upperStream = IntStream.range(0, upper.length)
-                .mapToObj(index ->
-                        new BoardColumn(Math.abs(upper[index]), Direction.ofSign(upper[index]), BOARD_TEMPLATE[0][index]));
-
-        final Stream<BoardColumn> lowerStream = IntStream.range(0, lower.length)
-                .mapToObj(index ->
-                        new BoardColumn(Math.abs(lower[index]), Direction.ofSign(lower[index]), BOARD_TEMPLATE[1][index]));
-
-        return Stream.concat(upperStream, lowerStream)
+        return Stream.concat(buildColumnStream(upper, BOARD_TEMPLATE[0]), buildColumnStream(lower, BOARD_TEMPLATE[1]))
                 .collect(Collectors.toList());
+    }
+
+    private static Stream<BoardColumn> buildColumnStream(int[] rawValues, String[] template) {
+        return IntStream.range(0, rawValues.length)
+                .mapToObj(index ->
+                        new BoardColumn(Math.abs(rawValues[index]), Direction.ofSign(rawValues[index]), template[index]));
     }
 
     private static int[] reverse(int[] array) {

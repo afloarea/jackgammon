@@ -60,34 +60,34 @@ public final class ColumnArrangement implements ColumnSequence {
     /**
      * Construct a column arrangement.
      * @param columnLayout the columnLayout containing the normal columns (with ids from A to X)
-     * @param forwardSuspended the number of suspended pieces for the forward direction
-     * @param backwardsSuspended the number of suspended pieces for the backwards direction
-     * @param forwardCollected the number of collected pieces for the forward direction
-     * @param backwardsCollected the number of colllected pieces for the backwards direction
+     * @param clockwiseSuspended the number of suspended pieces for the clockwise direction
+     * @param anticlockwiseSuspended the number of suspended pieces for the anticlockwise direction
+     * @param clockwiseCollected the number of collected pieces for the clockwise direction
+     * @param anticlockwiseCollected the number of collected pieces for the anticlockwise direction
      */
     public ColumnArrangement(List<BoardColumn> columnLayout,
-                             int forwardSuspended, int backwardsSuspended,
-                             int forwardCollected, int backwardsCollected) {
+                             int clockwiseSuspended, int anticlockwiseSuspended,
+                             int clockwiseCollected, int anticlockwiseCollected) {
         final var base = new ArrayList<>(columnLayout);
 
-        final var forward = new ArrayDeque<>(base);
-        final var suspendForward = new BoardColumn(forwardSuspended, Direction.FORWARD, "SB");
-        final var collectForward = new BoardColumn(forwardCollected, Direction.FORWARD, "CB");
-        forward.addFirst(suspendForward);
-        forward.addLast(collectForward);
+        final var clockwise = new ArrayDeque<>(base);
+        final var suspendClockwise = new BoardColumn(clockwiseSuspended, Direction.CLOCKWISE, "SB");
+        final var collectClockwise = new BoardColumn(clockwiseCollected, Direction.CLOCKWISE, "CB");
+        clockwise.addFirst(suspendClockwise);
+        clockwise.addLast(collectClockwise);
 
         Collections.reverse(base);
-        final var backward = new ArrayDeque<>(base);
-        final var suspendBackwards = new BoardColumn(backwardsSuspended, Direction.BACKWARD, "SW");
-        final var collectBackwards = new BoardColumn(backwardsCollected, Direction.BACKWARD, "CW");
-        backward.addFirst(suspendBackwards);
-        backward.addLast(collectBackwards);
+        final var anticlockwise = new ArrayDeque<>(base);
+        final var suspendAnticlockwise = new BoardColumn(anticlockwiseSuspended, Direction.ANTICLOCKWISE, "SW");
+        final var collectAnticlockwise = new BoardColumn(anticlockwiseCollected, Direction.ANTICLOCKWISE, "CW");
+        anticlockwise.addFirst(suspendAnticlockwise);
+        anticlockwise.addLast(collectAnticlockwise);
 
         columnsByDirection = Map.of(
-                Direction.FORWARD, forward.toArray(BoardColumn[]::new),
-                Direction.BACKWARD, backward.toArray(BoardColumn[]::new));
+                Direction.CLOCKWISE, clockwise.toArray(BoardColumn[]::new),
+                Direction.ANTICLOCKWISE, anticlockwise.toArray(BoardColumn[]::new));
 
-        Stream.of(Direction.FORWARD, Direction.BACKWARD).forEach(direction -> {
+        Stream.of(Direction.CLOCKWISE, Direction.ANTICLOCKWISE).forEach(direction -> {
             final Map<String, Integer> columnIdByIndex = new HashMap<>();
 
             final var columns = columnsByDirection.get(direction);
@@ -97,7 +97,7 @@ public final class ColumnArrangement implements ColumnSequence {
         });
 
         columnsById = Stream.concat(
-                base.stream(), Stream.of(suspendBackwards, suspendForward, collectBackwards, collectForward))
+                base.stream(), Stream.of(suspendAnticlockwise, suspendClockwise, collectAnticlockwise, collectClockwise))
                 .collect(Collectors.toMap(BoardColumn::getId, Function.identity()));
 
     }

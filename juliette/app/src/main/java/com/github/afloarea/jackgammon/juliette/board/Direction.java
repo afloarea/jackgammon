@@ -3,15 +3,15 @@ package com.github.afloarea.jackgammon.juliette.board;
 import java.util.Random;
 
 public enum Direction {
-    FORWARD(1) {
+    CLOCKWISE(1) {
         @Override
         public Direction reverse() {
-            return BACKWARD;
+            return ANTICLOCKWISE;
         }
-    }, BACKWARD(-1) {
+    }, ANTICLOCKWISE(-1) {
         @Override
         public Direction reverse() {
-            return FORWARD;
+            return CLOCKWISE;
         }
     }, NONE(0) {
         @Override
@@ -36,11 +36,11 @@ public enum Direction {
         if (sign == 0) {
             return NONE;
         }
-        return sign < 0 ? Direction.FORWARD : Direction.BACKWARD;
+        return sign < 0 ? Direction.CLOCKWISE : Direction.ANTICLOCKWISE;
     }
 
     public static Direction getRandom() {
-        return Wrapper.RANDOM.nextBoolean() ? Direction.FORWARD : Direction.BACKWARD;
+        return Wrapper.RANDOM.nextBoolean() ? Direction.CLOCKWISE : Direction.ANTICLOCKWISE;
     }
 
     private static final class Wrapper {

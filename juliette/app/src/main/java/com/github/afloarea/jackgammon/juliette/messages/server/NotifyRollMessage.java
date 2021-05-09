@@ -1,6 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
-import com.github.afloarea.jackgammon.juliette.board.DiceResult;
+import com.github.afloarea.jackgammon.juliette.board.DiceRoll;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
 import java.util.Objects;
@@ -11,10 +11,10 @@ public final class NotifyRollMessage implements GameToPlayerMessage {
     private final int dice1;
     private final int dice2;
 
-    public NotifyRollMessage(String playerName, DiceResult diceResult) {
+    public NotifyRollMessage(String playerName, DiceRoll diceRoll) {
         this.playerName = playerName;
-        this.dice1 = diceResult.getDice1();
-        this.dice2 = diceResult.getDice2();
+        this.dice1 = diceRoll.getDice1();
+        this.dice2 = diceRoll.getDice2();
     }
 
     public String getPlayerName() {

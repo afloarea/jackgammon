@@ -1,6 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
+import com.github.afloarea.jackgammon.juliette.board.exceptions.IllegalGameActionException;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.moves.executor.DefaultMoveExecutor;
 import com.github.afloarea.jackgammon.juliette.board.moves.executor.MoveExecutor;
@@ -32,7 +33,7 @@ public final class AdvancedGameBoard implements GameBoard {
     }
 
     @Override
-    public void updateDiceForDirection(Direction direction, DiceResult dice) {
+    public void updateDiceForDirection(Direction direction, DiceRoll dice) {
         validateDirection(direction);
 
         currentDirection = direction;
@@ -76,7 +77,7 @@ public final class AdvancedGameBoard implements GameBoard {
     }
 
     @Override
-    public boolean currentDirectionMovementIsComplete() {
+    public boolean isCurrentTurnDone() {
         return remainingDiceValues.isEmpty();
     }
 
@@ -87,43 +88,46 @@ public final class AdvancedGameBoard implements GameBoard {
 
     @Override
     public List<GameMove> executeMoveInDirection(Direction direction, GameMove move) {
-        if (isGameComplete()) {
-            throw new IllegalGameActionException("Game is complete. No more moves allowed");
-        }
-
-        if (direction != currentDirection || direction == Direction.NONE) {
-            throw new IllegalGameActionException("Incorrect playing color provided");
-        }
-
-        final Move selectedMove = movesMap.get(move);
+        final Move selectedMove = getSelectedMove(direction, move);
         selectedMove.getDistances().forEach(remainingDiceValues::remove);
         final var executedMoves = moveExecutor.executeMove(selectedMove, currentDirection);
         updatePossibleMoves(); // update after executing the moves
         return executedMoves;
     }
 
+    private Move getSelectedMove(Direction direction, GameMove move) {
+        if (isGameComplete()) {
+            throw new IllegalGameActionException("Game is complete. No more moves allowed");
+        }
+
+        if (direction != currentDirection || direction == Direction.NONE) {
+            throw new IllegalGameActionException("Incorrect direction provided");
+        }
+
+        final var selectedMove = movesMap.get(move);
+        if (selectedMove == null) {
+            throw new IllegalGameActionException("Invalid move provided");
+        }
+        return selectedMove;
+    }
+
     @Override
     public boolean isGameComplete() {
-        return Stream.of(Direction.FORWARD, Direction.BACKWARD)
+        return Stream.of(Direction.CLOCKWISE, Direction.ANTICLOCKWISE)
                 .map(columns::getCollectColumn)
                 .anyMatch(column -> column.getPieceCount() == PIECES_PER_PLAYER);
     }
 
     @Override
-    public Direction getCurrentDirection() {
+    public Direction getCurrentTurnDirection() {
         return currentDirection;
     }
 
     @Override
     public Direction getWinningDirection() {
-        return Stream.of(Direction.FORWARD, Direction.BACKWARD)
+        return Stream.of(Direction.CLOCKWISE, Direction.ANTICLOCKWISE)
                 .filter(direction -> columns.getCollectColumn(direction).getPieceCount() == PIECES_PER_PLAYER)
                 .findAny()
                 .orElse(Direction.NONE);
-    }
-
-    @Override
-    public Direction getLosingDirection() {
-        return getWinningDirection().reverse();
     }
 }

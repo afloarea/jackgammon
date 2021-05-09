@@ -1,6 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.manager;
 
-import com.github.afloarea.jackgammon.juliette.board.DiceResult;
+import com.github.afloarea.jackgammon.juliette.board.DiceRoll;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 import com.github.afloarea.jackgammon.juliette.board.GameBoard;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
@@ -21,9 +21,9 @@ public class DefaultGame implements Game {
     private final PlayerInfo secondPlayer;
 
     DefaultGame(String firstPlayerId, String secondPlayerId, Map<String, String> playerNamesById) {
-        this.firstPlayer = new PlayerInfo(firstPlayerId, playerNamesById.get(firstPlayerId), Direction.FORWARD);
-        this.secondPlayer = new PlayerInfo(secondPlayerId, playerNamesById.get(secondPlayerId), Direction.BACKWARD);
-        this.directionByPlayerId = Map.of(firstPlayerId, Direction.FORWARD, secondPlayerId, Direction.BACKWARD);
+        this.firstPlayer = new PlayerInfo(firstPlayerId, playerNamesById.get(firstPlayerId), Direction.CLOCKWISE);
+        this.secondPlayer = new PlayerInfo(secondPlayerId, playerNamesById.get(secondPlayerId), Direction.ANTICLOCKWISE);
+        this.directionByPlayerId = Map.of(firstPlayerId, Direction.CLOCKWISE, secondPlayerId, Direction.ANTICLOCKWISE);
 
         board = GameBoard.buildNewBoard();
     }
@@ -55,7 +55,7 @@ public class DefaultGame implements Game {
 
     private GameToPlayersMessage handleRoll(String playerId, String opponentId, PlayerRollMessage rollMessage) {
         final var playerDirection = directionByPlayerId.get(playerId);
-        final var diceResult = DiceResult.generate();
+        final var diceResult = DiceRoll.generate();
         final var notification = new NotifyRollMessage(
                 firstPlayer.getId().equals(playerId) ? firstPlayer.getName() : secondPlayer.getName(),
                 diceResult);
@@ -82,7 +82,7 @@ public class DefaultGame implements Game {
             opponentMessages.add(endMessage);
         } else {
             playerMessages.add(new PromptMoveMessage(board.getCurrentDirectionPossibleMoves()));
-            if (board.currentDirectionMovementIsComplete()) {
+            if (board.isCurrentTurnDone()) {
                 opponentMessages.add(new PromptRollMessage());
             }
         }
@@ -95,7 +95,7 @@ public class DefaultGame implements Game {
     private List<GameToPlayerMessage> generateOpponentMessages(GameToPlayerMessage notification) {
         final var opponentMessages = new ArrayList<GameToPlayerMessage>();
         opponentMessages.add(notification);
-        if (board.currentDirectionMovementIsComplete()) {
+        if (board.isCurrentTurnDone()) {
             opponentMessages.add(new PromptRollMessage());
         }
         return Collections.unmodifiableList(opponentMessages);

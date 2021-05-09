@@ -7,7 +7,7 @@ import java.util.Set;
 
 public interface GameBoard {
 
-    void updateDiceForDirection(Direction direction, DiceResult dice);
+    void updateDiceForDirection(Direction direction, DiceRoll dice);
 
     List<GameMove> executeMoveInDirection(Direction direction, GameMove move);
 
@@ -15,15 +15,17 @@ public interface GameBoard {
 
     Set<GameMove> getCurrentDirectionPossibleMoves();
 
-    Direction getCurrentDirection();
+    Direction getCurrentTurnDirection();
 
     Direction getWinningDirection();
 
-    Direction getLosingDirection();
+    default Direction getLosingDirection() {
+        return getWinningDirection().reverse();
+    }
 
     boolean isGameComplete();
 
-    boolean currentDirectionMovementIsComplete();
+    boolean isCurrentTurnDone();
 
     static GameBoard buildNewBoard() {
         return BoardFactory.buildDefaultBoard();
