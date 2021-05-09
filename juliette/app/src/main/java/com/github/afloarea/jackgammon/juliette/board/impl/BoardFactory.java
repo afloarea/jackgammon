@@ -1,5 +1,7 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.impl;
 
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.layout.BoardColumn;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnArrangement;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 
@@ -16,23 +18,23 @@ public final class BoardFactory {
 
     private BoardFactory() {}
 
-    public static AdvancedGameBoard buildDefaultBoard() {
+    public static AdvancedBgBoard buildDefaultBoard() {
         return build(new int[][] {
                 {-2, 0, 0, 0, 0, +5,   0, +3, 0, 0, 0, -5},
                 {+2, 0, 0, 0, 0, -5,   0, -3, 0, 0, 0, +5}
         });
     }
 
-    public static AdvancedGameBoard build(int[][] values,
-                                          int suspendedForward, int suspendedBackwards, int collectedForward, int collectedBackwards) {
+    public static AdvancedBgBoard build(int[][] values,
+                                        int suspendedForward, int suspendedBackwards, int collectedForward, int collectedBackwards) {
 
         final ColumnSequence columnSequence = new ColumnArrangement(translateToColumns(values),
                 suspendedForward, suspendedBackwards, collectedForward, collectedBackwards);
 
-        return new AdvancedGameBoard(columnSequence);
+        return new AdvancedBgBoard(columnSequence);
     }
 
-    public static AdvancedGameBoard build(int[][] values) {
+    public static AdvancedBgBoard build(int[][] values) {
         return build(values, 0, 0, 0, 0);
     }
 

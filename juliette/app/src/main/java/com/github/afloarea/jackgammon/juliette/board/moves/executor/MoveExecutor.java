@@ -1,8 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.executor;
 
-import com.github.afloarea.jackgammon.juliette.GameMove;
+import com.github.afloarea.jackgammon.juliette.board.BgMove;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
-import com.github.afloarea.jackgammon.juliette.board.Move;
+import com.github.afloarea.jackgammon.juliette.board.common.Move;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ public interface MoveExecutor {
      * @param direction the direction of the move
      * @return a list of performed simple moves (ex. suspend piece + move piece)
      */
-    List<GameMove> executeMove(Move move, Direction direction);
+    List<BgMove> executeMove(Move move, Direction direction);
 
 }

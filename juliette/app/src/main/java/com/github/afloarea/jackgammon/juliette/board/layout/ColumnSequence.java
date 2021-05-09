@@ -1,7 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.board.layout;
 
-import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
-import com.github.afloarea.jackgammon.juliette.board.Constants;
+import com.github.afloarea.jackgammon.juliette.board.common.Constants;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 
 import java.util.stream.Stream;

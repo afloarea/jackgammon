@@ -1,4 +1,6 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.common;
+
+import com.github.afloarea.jackgammon.juliette.board.layout.BoardColumn;
 
 import java.util.List;
 import java.util.Objects;

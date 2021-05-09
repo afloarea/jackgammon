@@ -1,6 +1,7 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.layout;
 
-import com.github.afloarea.jackgammon.juliette.board.exceptions.IllegalGameActionException;
+import com.github.afloarea.jackgammon.juliette.board.Direction;
+import com.github.afloarea.jackgammon.juliette.board.exceptions.IllegalBgActionException;
 
 import java.util.Objects;
 
@@ -39,14 +40,14 @@ public final class BoardColumn {
             return;
         }
         if (this.elementsDirection != elementDirection || elementDirection == Direction.NONE) {
-            throw new IllegalGameActionException("Cannot add element of direction " + elementDirection);
+            throw new IllegalBgActionException("Cannot add element of direction " + elementDirection);
         }
         pieceCount++;
     }
 
     public void removeElement() {
         if (pieceCount == 0) {
-            throw new IllegalGameActionException("Cannot remove non-existing pieces from column " + id);
+            throw new IllegalBgActionException("Cannot remove non-existing pieces from column " + id);
         }
         if (--pieceCount == 0) {
             elementsDirection = Direction.NONE;

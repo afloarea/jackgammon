@@ -1,15 +1,15 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
-import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
+import com.github.afloarea.jackgammon.juliette.board.layout.BoardColumn;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
-import com.github.afloarea.jackgammon.juliette.board.Move;
+import com.github.afloarea.jackgammon.juliette.board.common.Move;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.github.afloarea.jackgammon.juliette.board.Constants.HOME_START;
+import static com.github.afloarea.jackgammon.juliette.board.common.Constants.HOME_START;
 
 public final class DefaultMoveProvider implements PossibleMovesProvider {
     private final ColumnSequence columnSequence;

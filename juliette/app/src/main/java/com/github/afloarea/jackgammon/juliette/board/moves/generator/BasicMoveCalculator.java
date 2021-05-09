@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
-import com.github.afloarea.jackgammon.juliette.board.Constants;
+import com.github.afloarea.jackgammon.juliette.board.common.Constants;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 
 /**

@@ -1,6 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
+import com.github.afloarea.jackgammon.juliette.board.BgMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 
 import java.util.Map;
@@ -13,8 +14,9 @@ public final class PromptMoveMessage implements GameToPlayerMessage {
 
     private final Map<String, Set<String>> possibleMoves;
 
-    public PromptMoveMessage(Set<GameMove> possibleMoves) {
+    public PromptMoveMessage(Set<BgMove> possibleMoves) {
         this.possibleMoves = possibleMoves.stream()
+                .map(GameMove::fromBgMove)
                 .collect(Collectors.groupingBy(
                         GameMove::getFrom, Collectors.mapping(GameMove::getTo, Collectors.toSet())));
     }

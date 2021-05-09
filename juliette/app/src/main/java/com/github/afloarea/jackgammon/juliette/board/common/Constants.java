@@ -1,4 +1,4 @@
-package com.github.afloarea.jackgammon.juliette.board;
+package com.github.afloarea.jackgammon.juliette.board.common;
 
 public final class Constants {
     public static final int BOARD_COLUMNS       = 24;

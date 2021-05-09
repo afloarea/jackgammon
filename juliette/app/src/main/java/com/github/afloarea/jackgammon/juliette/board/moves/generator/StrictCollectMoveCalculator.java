@@ -3,7 +3,7 @@ package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 
-import static com.github.afloarea.jackgammon.juliette.board.Constants.COLLECT_INDEX;
+import static com.github.afloarea.jackgammon.juliette.board.common.Constants.COLLECT_INDEX;
 
 /**
  * This calculator allows for pieces to also be collected if the sum of dice values

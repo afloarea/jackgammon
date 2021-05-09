@@ -1,6 +1,5 @@
 package com.github.afloarea.jackgammon.juliette.board.layout;
 
-import com.github.afloarea.jackgammon.juliette.board.BoardColumn;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
 
 import java.util.*;
@@ -9,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.github.afloarea.jackgammon.juliette.board.Constants.COLLECT_INDEX;
+import static com.github.afloarea.jackgammon.juliette.board.common.Constants.COLLECT_INDEX;
 
 /**
  * A symbolic representation of the column within a backgammon game.

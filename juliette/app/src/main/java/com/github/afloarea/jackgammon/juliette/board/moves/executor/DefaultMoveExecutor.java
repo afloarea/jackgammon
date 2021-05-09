@@ -1,10 +1,10 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.executor;
 
-import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.board.Constants;
-import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
+import com.github.afloarea.jackgammon.juliette.board.BgMove;
+import com.github.afloarea.jackgammon.juliette.board.common.Constants;
 import com.github.afloarea.jackgammon.juliette.board.Direction;
-import com.github.afloarea.jackgammon.juliette.board.Move;
+import com.github.afloarea.jackgammon.juliette.board.common.Move;
+import com.github.afloarea.jackgammon.juliette.board.layout.ColumnSequence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,19 +23,19 @@ public final class DefaultMoveExecutor implements MoveExecutor {
     }
 
     @Override
-    public List<GameMove> executeMove(Move move, Direction direction) {
+    public List<BgMove> executeMove(Move move, Direction direction) {
         return split(move, direction)
                 .flatMap(gameMove -> performBasicMove(gameMove, direction))
                 .collect(Collectors.toList());
     }
 
-    private Stream<GameMove> split(Move move, Direction direction) {
-        final var splitMoves = new ArrayList<GameMove>();
+    private Stream<BgMove> split(Move move, Direction direction) {
+        final var splitMoves = new ArrayList<BgMove>();
         int fromIndex = columns.getColumnIndex(move.getSource(), direction);
 
         for (int distance : move.getDistances()) {
             final int newIndex = Math.min(fromIndex + distance, Constants.COLLECT_INDEX);
-            splitMoves.add(new GameMove(
+            splitMoves.add(BgMove.of(
                     columns.getColumn(fromIndex, direction).getId(),
                     columns.getColumn(newIndex, direction).getId()));
             fromIndex = newIndex;
@@ -44,18 +44,18 @@ public final class DefaultMoveExecutor implements MoveExecutor {
         return splitMoves.stream();
     }
 
-    private Stream<GameMove> performBasicMove(GameMove move, Direction direction) {
-        final var sourceColumn = columns.getColumnById(move.getFrom());
-        final var targetColumn = columns.getColumnById(move.getTo());
+    private Stream<BgMove> performBasicMove(BgMove move, Direction direction) {
+        final var sourceColumn = columns.getColumnById(move.getSource());
+        final var targetColumn = columns.getColumnById(move.getTarget());
 
-        final var executedMoves = new ArrayList<GameMove>();
+        final var executedMoves = new ArrayList<BgMove>();
         final var oppositeDirection = direction.reverse();
 
         if (targetColumn.getMovingDirectionOfElements() == oppositeDirection) {
             final var suspendColumn = columns.getSuspendedColumn(oppositeDirection);
             suspendColumn.addElement(oppositeDirection);
             targetColumn.removeElement();
-            executedMoves.add(new GameMove(targetColumn.getId(), suspendColumn.getId()));
+            executedMoves.add(BgMove.of(targetColumn.getId(), suspendColumn.getId()));
         }
 
         targetColumn.addElement(direction);

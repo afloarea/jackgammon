@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.board.moves.generator;
 
 import com.github.afloarea.jackgammon.juliette.board.Direction;
-import com.github.afloarea.jackgammon.juliette.board.Move;
+import com.github.afloarea.jackgammon.juliette.board.common.Move;
 
 import java.util.List;
 import java.util.stream.Stream;
