@@ -1,8 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.board.BgMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
+import com.github.afloarea.obge.BgMove;
 
 import java.util.Map;
 import java.util.Objects;

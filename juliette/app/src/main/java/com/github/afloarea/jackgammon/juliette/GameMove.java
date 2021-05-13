@@ -2,7 +2,7 @@ package com.github.afloarea.jackgammon.juliette;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.afloarea.jackgammon.juliette.board.BgMove;
+import com.github.afloarea.obge.BgMove;
 
 import java.util.Objects;
 import java.util.StringJoiner;

@@ -15,6 +15,8 @@ repositories {
     // Use JCenter for resolving dependencies.
     jcenter()
     mavenCentral()
+    // JitPack
+    maven { url 'https://jitpack.io' }
 }
 
 group 'com.github.afloarea'
@@ -28,16 +30,18 @@ java {
 }
 
 ext {
-    vertxVersion = '4.0.0'
+    vertxVersion = '4.0.3'
     slf4jVersion = "1.7.30"
     junitVersion = "5.7.0"
     log4jVersion = "2.14.0"
-    jacksonVersion = "2.12.1"
+    jacksonVersion = "2.12.3"
+    obgeVersion = "0.1.0"
 }
 
 dependencies {
     implementation "io.vertx:vertx-core:$vertxVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    implementation "com.github.afloarea:open-backgammon-engine:$obgeVersion"
 
     // logging
     implementation "org.slf4j:slf4j-api:$slf4jVersion"

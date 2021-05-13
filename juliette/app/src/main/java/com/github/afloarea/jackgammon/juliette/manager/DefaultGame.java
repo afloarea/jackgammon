@@ -1,12 +1,13 @@
 package com.github.afloarea.jackgammon.juliette.manager;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.board.DiceRoll;
-import com.github.afloarea.jackgammon.juliette.board.Direction;
-import com.github.afloarea.jackgammon.juliette.board.BgBoard;
+
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.messages.server.*;
+import com.github.afloarea.obge.BgBoard;
+import com.github.afloarea.obge.DiceRoll;
+import com.github.afloarea.obge.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
