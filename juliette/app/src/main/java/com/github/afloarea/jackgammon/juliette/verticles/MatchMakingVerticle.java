@@ -28,9 +28,10 @@ public final class MatchMakingVerticle extends AbstractVerticle {
         final String playerName = joinMessage.body().getPlayerName();
         final Player newPlayer = new Player(playerId, playerName);
 
-        if (joinMessage.body().getMode() == PlayerJoinMessage.Mode.SINGLEPLAYER) {
+        final var mode = joinMessage.body().getMode();
+        if (mode == PlayerJoinMessage.Mode.RANDOM || mode == PlayerJoinMessage.Mode.NEURAL) {
             LOG.info("Creating new single player game for player: {}", playerName);
-            vertx.deployVerticle(new SinglePlayerGameVerticle(newPlayer));
+            vertx.deployVerticle(new SinglePlayerGameVerticle(newPlayer, mode));
             return;
         }
 

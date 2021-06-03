@@ -86,7 +86,8 @@ public final class PlayerJoinMessage implements ClientToServerEvent {
 
     public enum Mode {
         @JsonProperty("multiplayer") MULTIPLAYER,
-        @JsonProperty("computer") SINGLEPLAYER,
+        @JsonProperty("random") RANDOM,
+        @JsonProperty("neural") NEURAL,
         @JsonProperty("private") PRIVATE,
     }
 

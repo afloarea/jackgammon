@@ -1,85 +1,49 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
-import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.*;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
-import com.github.afloarea.jackgammon.juliette.messages.server.PromptMoveMessage;
-import com.github.afloarea.jackgammon.juliette.messages.server.PromptRollMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 public final class SinglePlayerGameVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(SinglePlayerGameVerticle.class);
 
-    private static final Random RANDOM = new Random();
-
     private final Player player;
-    private final Player computer = new Player("computer-id", "RandomComputer");
+    private final Player computer;
     private final Game game;
 
-    public SinglePlayerGameVerticle(Player player) {
+    public SinglePlayerGameVerticle(Player player, PlayerJoinMessage.Mode gameMode) {
+        final var computerName = gameMode == PlayerJoinMessage.Mode.RANDOM ? "RandomComputer" : "NeuralComputer";
         this.player = player;
-        this.game = Game.setUpGame(player, computer);
+        this.computer = new Player("computer-id", computerName);
+
+        player.setOpponent(computer);
+        computer.setOpponent(player);
+
+        this.game = new SinglePlayerGame(
+                player.getName(), computer.getName(), Map.of(player.getId(), player.getName(), computer.getId(), computerName));
+
+        player.setGame(game);
+        computer.setGame(game);
     }
 
     @Override
     public void start() {
         vertx.eventBus().consumer(Endpoints.HANDLE_DISCONNECT, this::handleDisconnect);
         vertx.eventBus().consumer(deploymentID(), (Message<PlayerToGameMessage> msg) -> {
-            Optional<GameToPlayersMessage> result = Optional.of(player.executeMoveMessage(msg.body()));
-            while (result.isPresent()) {
-                sendMessagesToPlayers(result.get());
-                if (game.isOver()) {
-                    undeploy();
-                    break;
-                }
-                result = generateResponse(result.get());
-            }
+            final var messages = player.executeMoveMessage(msg.body());
+            sendMessagesToPlayers(messages);
         });
 
         vertx.eventBus().send(Endpoints.REGISTER, new RegistrationInfo(deploymentID(), Set.of(player.getId())));
         sendMessagesToPlayers(game.init());
-    }
-
-    private Optional<GameToPlayersMessage> generateResponse(GameToPlayersMessage original) {
-        final Optional<GameToPlayerMessage> request = original.getMessagesForPlayer(computer.getId()).stream()
-                .filter(msg -> msg instanceof PromptRollMessage
-                        || msg instanceof PromptMoveMessage && !((PromptMoveMessage) msg).getPossibleMoves().isEmpty())
-                .findFirst();
-
-        if (request.isEmpty()) {
-            return Optional.empty();
-        }
-
-        final var message = request.get();
-        if (message instanceof PromptRollMessage) {
-            return Optional.of(computer.executeMoveMessage(new PlayerRollMessage()));
-        } else {
-            final PromptMoveMessage moveRequest = (PromptMoveMessage) message;
-            return Optional.of(computer.executeMoveMessage(generateMove(moveRequest)));
-        }
-    }
-
-    private PlayerToGameMessage generateMove(PromptMoveMessage moveRequest) {
-        final int selectedSource = RANDOM.nextInt(moveRequest.getPossibleMoves().size());
-        final var entry = moveRequest.getPossibleMoves().entrySet().stream()
-                .skip(selectedSource)
-                .limit(1)
-                .findFirst().get();
-
-        final int selectedTarget = RANDOM.nextInt(entry.getValue().size());
-        final String source = entry.getKey();
-        final String target = entry.getValue().stream().skip(selectedTarget).limit(1).findFirst().get();
-
-        return new SelectMoveMessage(new GameMove(source, target));
     }
 
     private void sendMessagesToPlayers(GameToPlayersMessage messages) {
