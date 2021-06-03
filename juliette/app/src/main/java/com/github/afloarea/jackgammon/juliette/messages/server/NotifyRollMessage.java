@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
-import com.github.afloarea.obge.DiceRoll;
+import com.github.afloarea.obge.dice.DiceRoll;
 
 import java.util.Objects;
 import java.util.StringJoiner;

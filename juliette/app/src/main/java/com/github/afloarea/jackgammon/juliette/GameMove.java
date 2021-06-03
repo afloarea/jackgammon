@@ -2,7 +2,7 @@ package com.github.afloarea.jackgammon.juliette;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.afloarea.obge.BgMove;
+import com.github.afloarea.obge.moves.ObgMove;
 
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -48,11 +48,7 @@ public final class GameMove {
                 .toString();
     }
 
-    public BgMove toBgMove() {
-        return BgMove.of(from, to);
-    }
-
-    public static GameMove fromBgMove(BgMove move) {
+    public static GameMove fromBgMove(ObgMove move) {
         return new GameMove(move.getSource(), move.getTarget());
     }
 }

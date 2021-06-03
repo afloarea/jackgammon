@@ -2,7 +2,7 @@ package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
-import com.github.afloarea.obge.BgMove;
+import com.github.afloarea.obge.moves.ObgMove;
 
 import java.util.Map;
 import java.util.Objects;
@@ -14,7 +14,7 @@ public final class PromptMoveMessage implements GameToPlayerMessage {
 
     private final Map<String, Set<String>> possibleMoves;
 
-    public PromptMoveMessage(Set<BgMove> possibleMoves) {
+    public PromptMoveMessage(Set<ObgMove> possibleMoves) {
         this.possibleMoves = possibleMoves.stream()
                 .map(GameMove::fromBgMove)
                 .collect(Collectors.groupingBy(

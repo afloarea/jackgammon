@@ -35,7 +35,7 @@ ext {
     junitVersion = "5.7.0"
     log4jVersion = "2.14.0"
     jacksonVersion = "2.12.3"
-    obgeVersion = "0.1.0"
+    obgeVersion = "0.2.1"
 }
 
 dependencies {
