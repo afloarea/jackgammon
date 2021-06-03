@@ -8,6 +8,7 @@ import com.github.afloarea.obge.moves.ObgMove;
 import com.github.afloarea.obge.moves.ObgTransition;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,14 +32,14 @@ public final class MoveSequenceConverter {
     public static List<ObgTransition> convertMovesToSequence(Direction direction, List<ObgMove> moves) {
         final var sequence = new ArrayList<ObgTransition>();
 
-        for (int index = 0; index < moves.size(); index++) {
-            final var move = moves.get(index);
+        for (Iterator<ObgMove> moveIterator = moves.iterator(); moveIterator.hasNext();) {
+            final var move = moveIterator.next();
             if (!move.getDiceValues().equals(DiceValues.NONE)) {
                 sequence.add(new ObgTransition(move.getSource(), move.getTarget(), move.getDiceValues().iterator().next(), false));
                 continue;
             }
 
-            final var nextMove = moves.get(index + 1);
+            final var nextMove = moveIterator.next();
             sequence.add(new ObgTransition(nextMove.getSource(), nextMove.getTarget(), nextMove.getDiceValues().iterator().next(), true));
         }
 

@@ -16,11 +16,14 @@ import com.github.afloarea.obge.factory.BoardTemplate;
 import com.github.afloarea.obge.factory.ObgEngines;
 import com.github.afloarea.obge.moves.ObgMove;
 import com.github.afloarea.obge.moves.ObgTransition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class SinglePlayerGame implements Game {
+    private static final Logger LOG = LoggerFactory.getLogger(SinglePlayerGame.class);
     private static final Random RANDOM = new Random();
     private static final NeuralBrain NEURAL_BRAIN = new NeuralBrain(TdNetwork.importResource("/agents/agent3.json"));
 
@@ -77,14 +80,19 @@ public class SinglePlayerGame implements Game {
 
         if (engine.isCurrentTurnDone()) {
             playerMessages.addAll(playComputerTurn());
+        } else {
+            playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
         }
 
         return generatePlayerMessage(playerMessages);
     }
 
     private Collection<GameToPlayerMessage> playComputerTurn() {
+        LOG.warn("PLAYER MOVES SO FAR: {}", playerTurnMoves);
+
         // update board with player moves
         final var playerSequence = MoveSequenceConverter.convertMovesToSequence(humanPlayer.direction, playerTurnMoves);
+        LOG.warn("PLAYER SEQUENCE: {}", playerSequence);
         computerBoard.doSequence(humanPlayer.direction, playerSequence);
         playerTurnMoves.clear();
 
@@ -96,13 +104,14 @@ public class SinglePlayerGame implements Game {
         engine.applyDiceRoll(computerPlayer.direction, diceRoll);
 
         // no possible moves
-        final var possibleSequences = engine.getPossibleSequences();
-        if (possibleSequences.isEmpty()) {
+        if (engine.isCurrentTurnDone()) {
             playerMessages.add(new PromptRollMessage());
             return playerMessages;
         }
 
+        final var possibleSequences = engine.getPossibleSequences();
         final var selectedSequence = engine.selectSequence(computerPlayer.direction, selectSequence(possibleSequences));
+        computerBoard.doSequence(computerPlayer.direction, selectedSequence);
         final var executedMoves = MoveSequenceConverter.convertSequenceToMoves(computerPlayer.direction, selectedSequence);
 
         executedMoves.stream()
@@ -128,13 +137,11 @@ public class SinglePlayerGame implements Game {
 
     private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
         final var move = selectMoveMessage.getSelectedMove();
-        final var playerDirection = humanPlayer.direction;
         final var executedMoves = engine.execute(humanPlayer.direction, move.getFrom(), move.getTo());
 
         playerTurnMoves.addAll(executedMoves);
 
-        final List<GameToPlayerMessage> playerMessages =
-                engine.execute(playerDirection, move.getFrom(), move.getTo()).stream()
+        final List<GameToPlayerMessage> playerMessages = executedMoves.stream()
                         .map(GameMove::fromBgMove)
                         .map(NotifyMoveMessage::new)
                         .collect(Collectors.toCollection(ArrayList::new));

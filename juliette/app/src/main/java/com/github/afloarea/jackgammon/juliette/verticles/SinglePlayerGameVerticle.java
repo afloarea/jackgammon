@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 public final class SinglePlayerGameVerticle extends AbstractVerticle {
@@ -28,7 +27,7 @@ public final class SinglePlayerGameVerticle extends AbstractVerticle {
         computer.setOpponent(player);
 
         this.game = new SinglePlayerGame(
-                player.getName(), computer.getName(), Map.of(player.getId(), player.getName(), computer.getId(), computerName));
+                player.getId(), computer.getId(), Map.of(player.getId(), player.getName(), computer.getId(), computerName));
 
         player.setGame(game);
         computer.setGame(game);

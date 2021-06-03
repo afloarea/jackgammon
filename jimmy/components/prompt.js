@@ -6,11 +6,12 @@ async function displayPrompt() {
         vex.dialog.defaultOptions.buttons = [vex.dialog.buttons.YES];
 
         const values = getPromptInitialValues();
-        const checked = ["", "", ""]
+        const checked = ["", "", "", ""]
         switch (values['play-mode']) {
             case 'multiplayer': checked[0] = "checked";break;
-            case 'computer':    checked[1] = "checked";break;
-            case 'private':     checked[2] = "checked";break;
+            case 'random':      checked[1] = "checked";break;
+            case 'neural':      checked[2] = "checked";break;
+            case 'private':     checked[3] = "checked";break;
         }
 
         vex.dialog.open({
@@ -18,9 +19,10 @@ async function displayPrompt() {
             input: [
                 `<input name="name" type="text" placeholder="Your Name" value="${values.name}" required />`,
                 `<div><input class="selection" type="radio" id="multi" name="play-mode" value="multiplayer" ${checked[0]}><label for="multi">Multiplayer</label></div>`,
-                `<div><input class="selection" type="radio" id="single" name="play-mode" value="computer" ${checked[1]}><label for="single">Singleplayer</label></div>`,
-                `<div><input class="selection" type="radio" id="private" name="play-mode" value="private" ${checked[2]}><label for="private">Keyword Based</label></div>`,
-                `<input ${!checked[2] ? 'class="hidden"' : ''} id="keyword" name="keyword" type="text" placeholder="Keyword" value="${values.keyword}"/>`
+                `<div><input class="selection" type="radio" id="random" name="play-mode" value="random" ${checked[1]}><label for="random">Singleplayer Random</label></div>`,
+                `<div><input class="selection" type="radio" id="random" name="play-mode" value="neural" ${checked[2]}><label for="neural">Singleplayer Neural</label></div>`,
+                `<div><input class="selection" type="radio" id="private" name="play-mode" value="private" ${checked[3]}><label for="private">Keyword Based</label></div>`,
+                `<input ${!checked[3] ? 'class="hidden"' : ''} id="keyword" name="keyword" type="text" placeholder="Keyword" value="${values.keyword}"/>`
             ].join(''),
             callback: function (data) {
                 saveOptionsAsCookies(data);
@@ -44,7 +46,7 @@ function getPromptInitialValues() {
     const cookies = readCookies();
     return {
         name: cookies.has("name") ? cookies.get("name") : `Guest${Math.floor(Math.random() * 1000)}`,
-        "play-mode": cookies.has("play-mode") ? cookies.get("play-mode") : "computer",
+        "play-mode": cookies.has("play-mode") ? cookies.get("play-mode") : "random",
         keyword: cookies.has("keyword") ? cookies.get("keyword") : "all"
     };
 }
