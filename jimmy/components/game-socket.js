@@ -1,10 +1,10 @@
-function createWebSocket(config) {
+export function createWebSocket(config) {
     const socket = new WebSocket(config.url);
 
     socket.onopen = (ev) => config.handleOpen(ev, socket);
 
     socket.onmessage = function(event) {
-        console.log(event.data);
+        console.debug(event.data);
         const msg = JSON.parse(event.data);
 
         switch (msg.type) {

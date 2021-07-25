@@ -1,3 +1,7 @@
+import Board from './components/board/Board.js';
+import { createWebSocket } from './components/game-socket.js';
+import displayPrompt from './modal.js';
+
 const BACKEND = `ws://${window.location.hostname}:8080/play`;
 
 const diceButton = document.getElementById('roll');

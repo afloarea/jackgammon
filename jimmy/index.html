@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=1, user-scalable=no">
     <title>Jackgammon</title>
+    <link rel="stylesheet" href="modal/modal.css" />
     <link rel="stylesheet" href="index.css" />
 
     <!-- Prompt dependencies -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vex-js/4.1.0/css/vex.min.css" rel="stylesheet" />
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/vex-js/4.1.0/css/vex.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vex-js/4.1.0/css/vex-theme-os.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vex-js/4.1.0/js/vex.combined.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vex-js/4.1.0/js/vex.combined.min.js"></script> -->
 
     <!-- Prompt -->
-    <script src="components/prompt.js" defer></script>
+    <!-- <script src="components/prompt.js" defer></script> -->
 
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
-    <script src="assets.js" defer></script>
-    <script src="components/board.js" defer></script>
-    <script src="components/game-socket.js" defer></script>
-    <script src="index.js" defer></script>
+    <script type="module" src="modal.js" defer></script>
+    <script type="module" src="index.js" defer></script>
 </head>
+
 <body>
     <h1>Jackgammon</h1>
     <div class="row subtitle">
         <div id="match-info" class="invisible column centered-text">
             <p>
                 <span id="player-name">Gigel</span>
-                <img src="assets/black.png" class="going-first"/>
-                <img src="assets/white.png" class="going-second"/>
+                <img src="assets/black.png" class="going-first" />
+                <img src="assets/white.png" class="going-second" />
                 vs
-                <img src="assets/white.png" class="going-first"/>
-                <img src="assets/black.png" class="going-second"/>
+                <img src="assets/white.png" class="going-first" />
+                <img src="assets/black.png" class="going-second" />
                 <span id="opponent-name">Ionel</span>
             </p>
         </div>
@@ -45,12 +45,43 @@
     <div class="centered-content">
         <canvas id="game-canvas" width="900" height="600">Browser does not support canvas</canvas>
     </div>
-    
+
     <div id="assets" class="hidden">
         <img id="board" src="assets/board.png" />
         <img id="black-piece" src="assets/black.png" />
         <img id="white-piece" src="assets/white.png" />
     </div>
-    
+
+    <!-- Prompt element -->
+    <div id="prompt" , class="modal">
+
+        <div class="modal-content">
+            <h3>Enter your name and game options:</h3>
+            <div>
+                <div>
+                    <input name="name" type="text" placeholder="Your Name" required />
+                </div>
+                <div>
+                    <input class="selection" type="radio" name="play-mode" id="multi" value="multiplayer" /><label for="multi">Multiplayer</label>
+                </div>
+                <div>
+                    <input class="selection" type="radio" name="play-mode" id="random" value="random" /><label for="random">Singleplayer Random</label>
+                </div>
+                <div>
+                    <input class="selection" type="radio" name="play-mode" id="neural" value="neural" />
+                    <label for="neural">Singleplayer Neural<sup>[Experimental]</sup></label>
+                </div>
+                <div>
+                    <input class="selection" type="radio" name="play-mode" id="private" value="private" /><label for="private">Keyword Based</label>
+                    <input id="keyword" name="keyword" type="text" placeholder="Keyword" />
+                </div>
+            </div>
+
+            <button id="confirm-btn">OK</button>
+        </div>
+
+    </div>
+
 </body>
+
 </html>
