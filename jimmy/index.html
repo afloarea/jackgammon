@@ -56,30 +56,39 @@
     <div id="prompt" , class="modal">
 
         <div class="modal-content">
-            <h3>Enter your name and game options:</h3>
             <div>
                 <div>
-                    <input name="name" type="text" placeholder="Your Name" required />
+                    <h3>Enter your name and game options:</h3>
                 </div>
+
                 <div>
-                    <input class="selection" type="radio" name="play-mode" id="multi" value="multiplayer" /><label for="multi">Multiplayer</label>
+                    <div>
+                        <input name="name" type="text" placeholder="Your Name" required />
+                    </div>
+                    <div>
+                        <input class="selection" type="radio" name="play-mode" id="multiplayer" value="multiplayer" />
+                        <label for="multiplayer">Multiplayer</label>
+                    </div>
+                    <div>
+                        <input class="selection" type="radio" name="play-mode" id="random" value="random" />
+                        <label for="random">Singleplayer Random</label>
+                    </div>
+                    <div>
+                        <input class="selection" type="radio" name="play-mode" id="neural" value="neural" />
+                        <label for="neural">Singleplayer Neural<sup>[Experimental]</sup></label>
+                    </div>
+                    <div>
+                        <input class="selection" type="radio" name="play-mode" id="private" value="private" />
+                        <label for="private">Keyword Based</label>
+                        <input id="keyword" name="keyword" type="text" placeholder="Keyword" />
+                    </div>
                 </div>
-                <div>
-                    <input class="selection" type="radio" name="play-mode" id="random" value="random" /><label for="random">Singleplayer Random</label>
-                </div>
-                <div>
-                    <input class="selection" type="radio" name="play-mode" id="neural" value="neural" />
-                    <label for="neural">Singleplayer Neural<sup>[Experimental]</sup></label>
-                </div>
-                <div>
-                    <input class="selection" type="radio" name="play-mode" id="private" value="private" /><label for="private">Keyword Based</label>
-                    <input id="keyword" name="keyword" type="text" placeholder="Keyword" />
+
+                <div class="modal-btn">
+                    <button id="confirm-btn">OK</button>
                 </div>
             </div>
-
-            <button id="confirm-btn">OK</button>
         </div>
-
     </div>
 
 </body>

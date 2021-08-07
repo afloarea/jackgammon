@@ -16,7 +16,7 @@ async function readInputs() {
         document.getElementById('confirm-btn').addEventListener('click', ev => {
             const inputs = {
                 name: document.querySelector("input[name='name']").value,
-                "play-mode": Array.from(document.getElementsByClassName('selection')).filter(element => element.checked)[0],
+                "play-mode": Array.from(document.getElementsByClassName('selection')).filter(element => element.checked)[0].id,
                 keyword: document.getElementById('keyword').value
             };
             resolve(inputs);
@@ -48,12 +48,25 @@ function initPrompt(promptValues) {
     }));
 }
 
+const prompt = document.getElementById('prompt');
+prompt.addEventListener('animationend', (ev) => {
+    console.info(ev);
+    if (ev.animationName === 'dropOut') {
+        prompt.style.display = 'none';    
+    }
+});
+
 function setPromptVisible(visible=true) {
-    const prompt = document.getElementById('prompt');
-    prompt.style.display = visible ? "block" : "none";
+    const content = document.getElementsByClassName('modal-content')[0];
+    content.classList.remove('dropOutAnimation', 'dropInAnimation');
+    if (visible && prompt.style.display === 'block' || !visible && prompt.style.display === 'none') {
+        return;
+    }
+    prompt.style.display = 'block';
+    content.classList.add(visible ? 'dropInAnimation' : 'dropOutAnimation');
 }
 
-const POSSIBLE_PLAY_MODES = new Set(['multi', 'random', 'neural', 'private']);
+const POSSIBLE_PLAY_MODES = new Set(['multiplayer', 'random', 'neural', 'private']);
 
 function getPromptInitialValues() {
     const cookies = readCookies();
