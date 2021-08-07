@@ -73,6 +73,7 @@ function handleInit(msg) {
 
 function displayGameOver(msg) {
   alert(`${msg.winner} has won the game!`);
+  window.location.reload();
 }
 
 function selectMove(possibleMoves, socket) {
