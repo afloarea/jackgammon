@@ -4,6 +4,9 @@ import com.github.afloarea.jackgammon.juliette.manager.Game;
 import com.github.afloarea.jackgammon.juliette.manager.GameToPlayersMessage;
 import com.github.afloarea.jackgammon.juliette.manager.Player;
 import com.github.afloarea.jackgammon.juliette.manager.PlayerToGameMessage;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.SimpleMessages;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
@@ -30,18 +33,25 @@ public final class GameVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        vertx.eventBus().consumer(Endpoints.HANDLE_DISCONNECT, this::handleDisconnect);
-        vertx.eventBus().consumer(deploymentID(), (Message<PlayerToGameMessage> msg) -> {
+        vertx.eventBus().consumer(deploymentID(), (Message<ClientToServerEvent> msg) -> {
             final String playerId = msg.headers().get(Headers.CLIENT_ID);
-            final GameToPlayersMessage result = playersById.get(playerId).executeMoveMessage(msg.body());
-            sendMessagesToPlayers(result);
-            if (game.isOver()) {
-                undeploy(playersById.keySet());
+            if (msg.body() instanceof PlayerToGameMessage playerMessage) {
+                handlePlayerMessage(playerId, playerMessage);
+            } else if (msg.body() instanceof DisconnectMessage) {
+                handleDisconnect(playerId);
             }
         });
 
         vertx.eventBus().send(Endpoints.REGISTER, new RegistrationInfo(deploymentID(), playersById.keySet()));
         sendMessagesToPlayers(game.init());
+    }
+
+    private void handlePlayerMessage(String playerId, PlayerToGameMessage msg) {
+        final GameToPlayersMessage result = playersById.get(playerId).executeMoveMessage(msg);
+        sendMessagesToPlayers(result);
+        if (game.isOver()) {
+            undeploy(playersById.keySet());
+        }
     }
 
     private void sendMessagesToPlayers(GameToPlayersMessage messages) {
@@ -51,12 +61,7 @@ public final class GameVerticle extends AbstractVerticle {
         });
     }
 
-    private void handleDisconnect(Message<String> msg) {
-        final String playerId = msg.headers().get(Headers.CLIENT_ID);
-        if (!playersById.containsKey(playerId)) {
-            return;
-        }
-
+    private void handleDisconnect(String playerId) {
         final Player disconnectedPlayer = playersById.get(playerId);
         LOG.warn("Player {} disconnected.", disconnectedPlayer.getName());
         undeploy(Set.of(disconnectedPlayer.getOpponent().getId()));
@@ -64,10 +69,9 @@ public final class GameVerticle extends AbstractVerticle {
 
     private void undeploy(Set<String> playersToDisconnect) {
         LOG.info("Ending game with players: {}", playersById.keySet());
-        final String message = playersToDisconnect.size() == 1 ? "Opponent disconnected" : "Game over";
         playersToDisconnect.forEach(playerId ->
-                vertx.eventBus().send(Endpoints.DISCONNECT_PLAYER,
-                        message,
+                vertx.eventBus().send(Endpoints.SEND_TO_PLAYER,
+                        SimpleMessages.DISCONNECT_MESSAGE,
                         new DeliveryOptions().addHeader(Headers.CLIENT_ID, playerId)));
 
         vertx.eventBus().send(Endpoints.UNREGISTER, new RegistrationInfo(deploymentID(), playersById.keySet()));

@@ -57,7 +57,7 @@ public final class TdMapper {
     }
 
     private static double mapCollectColumnToInput(ColumnInfo collectColumn) {
-        return collectColumn.getPieceCount();
+        return collectColumn.getPieceCount() / 15D;
     }
 
     private TdMapper() {}

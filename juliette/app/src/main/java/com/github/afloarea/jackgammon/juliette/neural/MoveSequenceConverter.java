@@ -10,7 +10,6 @@ import com.github.afloarea.obge.moves.ObgTransition;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class MoveSequenceConverter {
@@ -26,7 +25,7 @@ public final class MoveSequenceConverter {
                     );
                     return Stream.concat(suspendMoveStream, Stream.of(new GameMove(transition.getSource(), transition.getTarget())));
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<ObgTransition> convertMovesToSequence(Direction direction, List<ObgMove> moves) {

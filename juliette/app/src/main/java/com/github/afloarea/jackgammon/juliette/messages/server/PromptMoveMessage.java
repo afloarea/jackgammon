@@ -5,43 +5,23 @@ import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
 import com.github.afloarea.obge.moves.ObgMove;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
-public final class PromptMoveMessage implements GameToPlayerMessage {
-
-    private final Map<String, Set<String>> possibleMoves;
+public record PromptMoveMessage(Map<String, Set<String>> possibleMoves) implements GameToPlayerMessage {
 
     public PromptMoveMessage(Set<ObgMove> possibleMoves) {
-        this.possibleMoves = possibleMoves.stream()
+        this(groupPossibleMoves(possibleMoves));
+    }
+
+    private static Map<String, Set<String>> groupPossibleMoves(Set<ObgMove> possibleMoves) {
+        return possibleMoves.stream()
                 .map(GameMove::fromBgMove)
                 .collect(Collectors.groupingBy(
-                        GameMove::getFrom, Collectors.mapping(GameMove::getTo, Collectors.toSet())));
+                        GameMove::from, Collectors.mapping(GameMove::to, Collectors.toSet())));
     }
 
     public Map<String, Set<String>> getPossibleMoves() {
         return possibleMoves;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PromptMoveMessage)) return false;
-        PromptMoveMessage that = (PromptMoveMessage) o;
-        return Objects.equals(possibleMoves, that.possibleMoves);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(possibleMoves);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", PromptMoveMessage.class.getSimpleName() + "[", "]")
-                .add("possibleMoves=" + possibleMoves)
-                .toString();
     }
 }

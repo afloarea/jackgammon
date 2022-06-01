@@ -3,7 +3,9 @@ package com.github.afloarea.jackgammon.juliette.manager;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// handles interaction for players that are ready to play
+/**
+ * Handles interaction for players that are ready to play.
+ */
 public interface Game {
 
     GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message);

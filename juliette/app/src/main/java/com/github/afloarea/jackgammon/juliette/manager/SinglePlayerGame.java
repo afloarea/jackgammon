@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SinglePlayerGame implements Game {
+public final class SinglePlayerGame implements Game {
     private static final Logger LOG = LoggerFactory.getLogger(SinglePlayerGame.class);
     private static final Random RANDOM = new Random();
-    private static final NeuralBrain NEURAL_BRAIN = new NeuralBrain(TdNetwork.importResource("/agents/agent3.json"));
+    private static final NeuralBrain NEURAL_BRAIN = new NeuralBrain(TdNetwork.importResource("/agents/neural1.json"));
 
     private final MixedModeObgEngine engine;
 
@@ -53,8 +53,8 @@ public class SinglePlayerGame implements Game {
         if (message instanceof PlayerRollMessage) {
             return handleRoll();
         }
-        if (message instanceof SelectMoveMessage) {
-            return handleMove((SelectMoveMessage) message);
+        if (message instanceof SelectMoveMessage selectMoveMessage) {
+            return handleMove(selectMoveMessage);
         }
         throw new UnsupportedOperationException("Unable to handle message of type " + message.getClass().getSimpleName());
     }
@@ -62,19 +62,19 @@ public class SinglePlayerGame implements Game {
     @Override
     public GameToPlayersMessage init() {
         return GameToPlayersMessage.of(
-                humanPlayer.getId(), List.of(new InitGameMessage(
-                        humanPlayer.getName(), computerPlayer.getName(), true), new PromptRollMessage()),
-                computerPlayer.getId(), List.of(new InitGameMessage(
-                        computerPlayer.getName(), humanPlayer.getName(), false)));
+                humanPlayer.id(), List.of(new InitGameMessage(
+                        humanPlayer.name(), computerPlayer.name(), true), new PromptRollMessage()),
+                computerPlayer.id(), List.of(new InitGameMessage(
+                        computerPlayer.name(), humanPlayer.name(), false)));
     }
 
     private GameToPlayersMessage handleRoll() {
-        final var playerDirection = humanPlayer.direction;
+        final var playerDirection = humanPlayer.direction();
         final var diceResult = DiceRoll.generate();
 
         engine.applyDiceRoll(playerDirection, diceResult);
 
-        final var notification = new NotifyRollMessage(humanPlayer.getName(), diceResult);
+        final var notification = new NotifyRollMessage(humanPlayer.name(), diceResult);
         final var playerMessages = new ArrayList<GameToPlayerMessage>();
         playerMessages.add(notification);
 
@@ -91,17 +91,17 @@ public class SinglePlayerGame implements Game {
         LOG.warn("PLAYER MOVES SO FAR: {}", playerTurnMoves);
 
         // update board with player moves
-        final var playerSequence = MoveSequenceConverter.convertMovesToSequence(humanPlayer.direction, playerTurnMoves);
+        final var playerSequence = MoveSequenceConverter.convertMovesToSequence(humanPlayer.direction(), playerTurnMoves);
         LOG.warn("PLAYER SEQUENCE: {}", playerSequence);
-        computerBoard.doSequence(humanPlayer.direction, playerSequence);
+        computerBoard.doSequence(humanPlayer.direction(), playerSequence);
         playerTurnMoves.clear();
 
         final var playerMessages = new ArrayList<GameToPlayerMessage>();
 
         // roll the dice
         final var diceRoll = DiceRoll.generate();
-        playerMessages.add(new NotifyRollMessage(computerPlayer.name, diceRoll));
-        engine.applyDiceRoll(computerPlayer.direction, diceRoll);
+        playerMessages.add(new NotifyRollMessage(computerPlayer.name(), diceRoll));
+        engine.applyDiceRoll(computerPlayer.direction(), diceRoll);
 
         // no possible moves
         if (engine.isCurrentTurnDone()) {
@@ -110,16 +110,16 @@ public class SinglePlayerGame implements Game {
         }
 
         final var possibleSequences = engine.getPossibleSequences();
-        final var selectedSequence = engine.selectSequence(computerPlayer.direction, selectSequence(possibleSequences));
-        computerBoard.doSequence(computerPlayer.direction, selectedSequence);
-        final var executedMoves = MoveSequenceConverter.convertSequenceToMoves(computerPlayer.direction, selectedSequence);
+        final var selectedSequence = engine.selectSequence(computerPlayer.direction(), selectSequence(possibleSequences));
+        computerBoard.doSequence(computerPlayer.direction(), selectedSequence);
+        final var executedMoves = MoveSequenceConverter.convertSequenceToMoves(computerPlayer.direction(), selectedSequence);
 
         executedMoves.stream()
                 .map(NotifyMoveMessage::new)
                 .forEach(playerMessages::add);
 
         if (engine.isGameComplete()) {
-            playerMessages.add(new NotifyGameEndedMessage(computerPlayer.getName()));
+            playerMessages.add(new NotifyGameEndedMessage(computerPlayer.name()));
         } else {
             playerMessages.add(new PromptRollMessage());
         }
@@ -132,22 +132,22 @@ public class SinglePlayerGame implements Game {
             return new ArrayList<>(sequences).get(RANDOM.nextInt(sequences.size()));
         }
 
-        return NEURAL_BRAIN.selectSequence(computerPlayer.direction, sequences, computerBoard);
+        return NEURAL_BRAIN.selectSequence(computerPlayer.direction(), sequences, computerBoard);
     }
 
     private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
-        final var move = selectMoveMessage.getSelectedMove();
-        final var executedMoves = engine.execute(humanPlayer.direction, move.getFrom(), move.getTo());
+        final var move = selectMoveMessage.selectedMove();
+        final var executedMoves = engine.execute(humanPlayer.direction(), move.from(), move.to());
 
         playerTurnMoves.addAll(executedMoves);
 
         final List<GameToPlayerMessage> playerMessages = executedMoves.stream()
-                        .map(GameMove::fromBgMove)
-                        .map(NotifyMoveMessage::new)
-                        .collect(Collectors.toCollection(ArrayList::new));
+                .map(GameMove::fromBgMove)
+                .map(NotifyMoveMessage::new)
+                .collect(Collectors.toCollection(ArrayList::new));
 
         if (engine.isGameComplete()) {
-            final var endMessage = new NotifyGameEndedMessage(humanPlayer.getName());
+            final var endMessage = new NotifyGameEndedMessage(humanPlayer.name());
             playerMessages.add(endMessage);
         } else {
             playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
@@ -160,44 +160,10 @@ public class SinglePlayerGame implements Game {
     }
 
     private GameToPlayersMessage generatePlayerMessage(Collection<GameToPlayerMessage> playerMessages) {
-        return GameToPlayersMessage.of(humanPlayer.id, playerMessages, computerPlayer.id, Collections.emptyList());
+        return GameToPlayersMessage.of(humanPlayer.id(), playerMessages, computerPlayer.id(), Collections.emptyList());
     }
 
-    private static final class PlayerInfo {
-        private final String id;
-        private final String name;
-        private final Direction direction;
-
-        public PlayerInfo(String id, String name, Direction direction) {
-            this.id = id;
-            this.name = name;
-            this.direction = direction;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Direction getDirection() {
-            return direction;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof PlayerInfo)) return false;
-            PlayerInfo that = (PlayerInfo) o;
-            return id.equals(that.id) && name.equals(that.name) && direction == that.direction;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, name, direction);
-        }
+    private record PlayerInfo(String id, String name, Direction direction) {
     }
 
     private static final class NeuralBrain {

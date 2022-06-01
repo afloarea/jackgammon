@@ -13,28 +13,27 @@ plugins {
 
 repositories {
     // Use JCenter for resolving dependencies.
-    jcenter()
     mavenCentral()
     // JitPack
     maven { url 'https://jitpack.io' }
 }
 
 group 'com.github.afloarea'
-version = '0.1.0'
+version = '0.2.1'
 
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = 17
+targetCompatibility = 17
 
 java {
     modularity.inferModulePath = true
 }
 
 ext {
-    vertxVersion = '4.0.3'
-    slf4jVersion = "1.7.30"
-    junitVersion = "5.7.0"
-    log4jVersion = "2.14.0"
-    jacksonVersion = "2.12.3"
+    vertxVersion = '4.3.1'
+    slf4jVersion = "1.7.36"
+    junitVersion = "5.8.2"
+    log4jVersion = "2.17.2"
+    jacksonVersion = "2.13.3"
     obgeVersion = "0.2.1"
 }
 

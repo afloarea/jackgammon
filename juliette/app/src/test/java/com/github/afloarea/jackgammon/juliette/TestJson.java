@@ -4,19 +4,21 @@ import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEve
 import io.vertx.core.json.Json;
 import org.junit.jupiter.api.Test;
 
-public class TestJson {
+class TestJson {
 
-    private static final String json = "{\n" +
-            "  \"type\": \"join\",\n" +
-            "  \"playerName\": \"Papagal\",\n" +
-            "  \"options\": {\n" +
-            "    \"mode\": \"private\"\n" +
-            "  }\n" +
-            "}";
+    private static final String JSON = """
+            {
+                "type": "join",
+                "playerName": "Papagal",
+                "options": {
+                    "mode": "private"
+                }
+            }
+            """;
 
     @Test
     void test() {
-        final var msg = Json.decodeValue(json, ClientToServerEvent.class);
+        final var msg = Json.decodeValue(JSON, ClientToServerEvent.class);
         System.out.println(msg);
     }
 

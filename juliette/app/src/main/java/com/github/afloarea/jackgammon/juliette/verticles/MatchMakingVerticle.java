@@ -1,6 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
 import com.github.afloarea.jackgammon.juliette.manager.Player;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
@@ -19,23 +21,34 @@ public final class MatchMakingVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        vertx.eventBus().consumer(Endpoints.HANDLE_PLAYER_JOIN, this::handleJoin);
-        vertx.eventBus().consumer(Endpoints.HANDLE_DISCONNECT, this::handleDisconnect);
+        vertx.eventBus().consumer(Endpoints.HANDLE_PLAYER_CONNECTION, this::handleConnection);
     }
 
-    private void handleJoin(Message<PlayerJoinMessage> joinMessage) {
-        final String playerId = joinMessage.headers().get(Headers.CLIENT_ID);
-        final String playerName = joinMessage.body().getPlayerName();
+    private void handleConnection(Message<ClientToServerEvent> clientMsg) {
+        final String clientId = clientMsg.headers().get(Headers.CLIENT_ID);
+        if (clientMsg.body() instanceof PlayerJoinMessage joinMessage) {
+            handleJoin(clientId, joinMessage);
+            return;
+        }
+        if (clientMsg.body() instanceof DisconnectMessage) {
+            handleDisconnect(clientId);
+        }
+
+        //FIXME
+    }
+
+    private void handleJoin(String playerId, PlayerJoinMessage msgBody) {
+        final String playerName = msgBody.playerName();
         final Player newPlayer = new Player(playerId, playerName);
 
-        final var mode = joinMessage.body().getMode();
+        final var mode = msgBody.mode();
         if (mode == PlayerJoinMessage.Mode.RANDOM || mode == PlayerJoinMessage.Mode.NEURAL) {
             LOG.info("Creating new single player game for player: {}", playerName);
             vertx.deployVerticle(new SinglePlayerGameVerticle(newPlayer, mode));
             return;
         }
 
-        final String keyword = joinMessage.body().getKeyword();
+        final String keyword = msgBody.keyword();
         final Deque<Player> waitingPlayers = waitingPlayersByKeyword.computeIfAbsent(keyword, k -> new ArrayDeque<>());
 
         if (waitingPlayers.isEmpty()) {
@@ -49,8 +62,7 @@ public final class MatchMakingVerticle extends AbstractVerticle {
         vertx.deployVerticle(new GameVerticle(opponent, newPlayer));
     }
 
-    private void handleDisconnect(Message<String> msg) {
-        final String playerId = msg.headers().get(Headers.CLIENT_ID);
+    private void handleDisconnect(String playerId) {
         final boolean removed = waitingPlayersByKeyword.values().stream()
                 .anyMatch(queue -> queue.removeIf(player -> player.getId().equals(playerId)));
         if (removed) {

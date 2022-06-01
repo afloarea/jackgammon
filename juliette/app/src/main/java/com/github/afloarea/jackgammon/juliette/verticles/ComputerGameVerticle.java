@@ -2,6 +2,9 @@ package com.github.afloarea.jackgammon.juliette.verticles;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.*;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.SimpleMessages;
+import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.messages.server.PromptMoveMessage;
@@ -32,16 +35,11 @@ public final class ComputerGameVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        vertx.eventBus().consumer(Endpoints.HANDLE_DISCONNECT, this::handleDisconnect);
-        vertx.eventBus().consumer(deploymentID(), (Message<PlayerToGameMessage> msg) -> {
-            Optional<GameToPlayersMessage> result = Optional.of(player.executeMoveMessage(msg.body()));
-            while (result.isPresent()) {
-                sendMessagesToPlayers(result.get());
-                if (game.isOver()) {
-                    undeploy();
-                    break;
-                }
-                result = generateResponse(result.get());
+        vertx.eventBus().consumer(deploymentID(), (Message<ClientToServerEvent> msg) -> {
+            if (msg.body() instanceof PlayerToGameMessage playerMessage) {
+                handlePlayerMessage(playerMessage);
+            } else if (msg.body() instanceof DisconnectMessage) {
+                handleDisconnect();
             }
         });
 
@@ -49,10 +47,22 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         sendMessagesToPlayers(game.init());
     }
 
+    private void handlePlayerMessage(PlayerToGameMessage msg) {
+        Optional<GameToPlayersMessage> result = Optional.of(player.executeMoveMessage(msg));
+        while (result.isPresent()) {
+            sendMessagesToPlayers(result.get());
+            if (game.isOver()) {
+                undeploy();
+                break;
+            }
+            result = generateResponse(result.get());
+        }
+    }
+
     private Optional<GameToPlayersMessage> generateResponse(GameToPlayersMessage original) {
         final Optional<GameToPlayerMessage> request = original.getMessagesForPlayer(computer.getId()).stream()
                 .filter(msg -> msg instanceof PromptRollMessage
-                        || msg instanceof PromptMoveMessage && !((PromptMoveMessage) msg).getPossibleMoves().isEmpty())
+                        || msg instanceof PromptMoveMessage promptMsg && !promptMsg.getPossibleMoves().isEmpty())
                 .findFirst();
 
         if (request.isEmpty()) {
@@ -73,11 +83,11 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         final var entry = moveRequest.getPossibleMoves().entrySet().stream()
                 .skip(selectedSource)
                 .limit(1)
-                .findFirst().get();
+                .findFirst().orElseThrow();
 
         final int selectedTarget = RANDOM.nextInt(entry.getValue().size());
         final String source = entry.getKey();
-        final String target = entry.getValue().stream().skip(selectedTarget).limit(1).findFirst().get();
+        final String target = entry.getValue().stream().skip(selectedTarget).limit(1).findFirst().orElseThrow();
 
         return new SelectMoveMessage(new GameMove(source, target));
     }
@@ -88,12 +98,7 @@ public final class ComputerGameVerticle extends AbstractVerticle {
                 vertx.eventBus().send(Endpoints.SEND_TO_PLAYER, message, deliveryOptions));
     }
 
-    private void handleDisconnect(Message<String> msg) {
-        final String playerId = msg.headers().get(Headers.CLIENT_ID);
-        if (!playerId.equals(player.getId())) {
-            return;
-        }
-
+    private void handleDisconnect() {
         LOG.warn("Player {} disconnected.", player.getName());
         undeploy();
     }
@@ -101,8 +106,8 @@ public final class ComputerGameVerticle extends AbstractVerticle {
     private void undeploy() {
         LOG.info("Ending game with players: {}", player.getId());
         if (game.isOver()) {
-            vertx.eventBus().send(Endpoints.DISCONNECT_PLAYER,
-                    "Game over",
+            vertx.eventBus().send(Endpoints.SEND_TO_PLAYER,
+                    SimpleMessages.DISCONNECT_MESSAGE,
                     new DeliveryOptions().addHeader(Headers.CLIENT_ID, player.getId()));
         }
 

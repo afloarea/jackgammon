@@ -35,7 +35,7 @@ public final class TdNetwork implements NeuralNetwork {
         outputsById.entrySet().stream().skip(inputSize + 1).forEach(neuronEntry -> {
             final var inputLinks = linksByTarget.get(neuronEntry.getKey());
             final var weightedSum = inputLinks.stream()
-                    .mapToDouble(link -> link.getWeight() * outputsById.get(link.getSource()))
+                    .mapToDouble(link -> link.weight() * outputsById.get(link.source()))
                     .sum();
             neuronEntry.setValue(activate(weightedSum));
         });
@@ -85,7 +85,7 @@ public final class TdNetwork implements NeuralNetwork {
         final var groupedLinksByTarget = json.getJsonArray("connections").stream()
                 .map(JsonObject.class::cast)
                 .map(jsonEntry -> jsonEntry.mapTo(Link.class))
-                .collect(Collectors.groupingBy(Link::getTarget));
+                .collect(Collectors.groupingBy(Link::target));
 
 
         return new TdNetwork(inputSize, outputsById, groupedLinksByTarget);

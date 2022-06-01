@@ -1,5 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.SimpleMessages;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.server.ServerToClientEvent;
 import io.vertx.core.AbstractVerticle;
@@ -27,15 +29,22 @@ public final class WebSocketVerticle extends AbstractVerticle {
         final int port = Integer.parseInt(System.getenv().getOrDefault("JACKGAMMON_PORT", "8080"));
         LOG.info("Starting WebSocketVerticle on port {} ...", port);
 
-        vertx.eventBus().<ServerToClientEvent>consumer(Endpoints.SEND_TO_PLAYER).handler(this::handleServerToClientMessage);
-        vertx.eventBus().<String>consumer(Endpoints.DISCONNECT_PLAYER).handler(this::handlePlayerDisconnect);
+        vertx.eventBus().<ServerToClientEvent>consumer(Endpoints.SEND_TO_PLAYER).handler(this::handleOutgoing);
 
         vertx.createHttpServer()
-                .webSocketHandler(this::handleWebSocket)
+                .webSocketHandler(this::handleIncoming)
                 .listen(port)
                 .onSuccess(startedServer -> httpServer = startedServer)
                 .<Void>mapEmpty()
                 .onComplete(startPromise);
+    }
+
+    private void handleOutgoing(Message<ServerToClientEvent> eventMsg) {
+        if (eventMsg.body() instanceof DisconnectMessage) {
+            handlePlayerDisconnect(eventMsg);
+            return;
+        }
+        handleServerToClientMessage(eventMsg);
     }
 
     private void handleServerToClientMessage(Message<ServerToClientEvent> msg) {
@@ -50,15 +59,15 @@ public final class WebSocketVerticle extends AbstractVerticle {
         }
     }
 
-    private void handlePlayerDisconnect(Message<String> msg) {
+    private void handlePlayerDisconnect(Message<?> msg) {
         final var clientId = msg.headers().get(Headers.CLIENT_ID);
         LOG.info("Disconnecting client {}", clientId);
         final var webSocket = webSocketByClientId.remove(clientId);
-        webSocket.close((short) 1001, msg.body()).onComplete(ar ->
+        webSocket.close().onComplete(ar ->
                 LOG.info("Disconnecting {} succeeded: {}", clientId, ar.succeeded()));
     }
 
-    private void handleWebSocket(ServerWebSocket webSocket) {
+    private void handleIncoming(ServerWebSocket webSocket) {
         final var clientId = UUID.randomUUID().toString();
         LOG.info("Received web socket connection. Assigning id: {}", clientId);
         webSocketByClientId.put(clientId, webSocket);
@@ -72,9 +81,9 @@ public final class WebSocketVerticle extends AbstractVerticle {
         webSocket.closeHandler(v -> LOG.info("WebSocket closed"));
         webSocket.endHandler(v -> {
             LOG.info("WebSocket ended");
-            vertx.eventBus().publish(
-                    Endpoints.HANDLE_DISCONNECT,
-                    "Client disconnected",
+            vertx.eventBus().send(
+                    Endpoints.HANDLE_INCOMING_MESSAGE,
+                    SimpleMessages.DISCONNECT_MESSAGE,
                     new DeliveryOptions().addHeader(Headers.CLIENT_ID, clientId));
         });
     }

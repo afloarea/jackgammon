@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class DefaultGame implements Game {
+public final class DefaultGame implements Game {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultGame.class);
 
     private final Map<String, Direction> directionByPlayerId;
@@ -38,11 +38,11 @@ public class DefaultGame implements Game {
 
     @Override
     public GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message) {
-        if (message instanceof PlayerRollMessage) {
-            return handleRoll(playerId, opponentId, (PlayerRollMessage) message);
+        if (message instanceof PlayerRollMessage rollMessage) {
+            return handleRoll(playerId, opponentId, rollMessage);
         }
-        if (message instanceof SelectMoveMessage) {
-            return handleMove(playerId, opponentId, (SelectMoveMessage) message);
+        if (message instanceof SelectMoveMessage selectMessage) {
+            return handleMove(playerId, opponentId, selectMessage);
         }
         throw new UnsupportedOperationException("Unable to handle message of type " + message.getClass().getSimpleName());
     }
@@ -50,17 +50,17 @@ public class DefaultGame implements Game {
     @Override
     public GameToPlayersMessage init() {
         return GameToPlayersMessage.of(
-                firstPlayer.getId(), List.of(new InitGameMessage(
-                        firstPlayer.getName(), secondPlayer.getName(), true), new PromptRollMessage()),
-                secondPlayer.getId(), List.of(new InitGameMessage(
-                        secondPlayer.getName(), firstPlayer.getName(), false)));
+                firstPlayer.id(), List.of(new InitGameMessage(
+                        firstPlayer.name(), secondPlayer.name(), true), new PromptRollMessage()),
+                secondPlayer.id(), List.of(new InitGameMessage(
+                        secondPlayer.name(), firstPlayer.name(), false)));
     }
 
     private GameToPlayersMessage handleRoll(String playerId, String opponentId, PlayerRollMessage rollMessage) {
         final var playerDirection = directionByPlayerId.get(playerId);
         final var diceResult = DiceRoll.generate();
         final var notification = new NotifyRollMessage(
-                firstPlayer.getId().equals(playerId) ? firstPlayer.getName() : secondPlayer.getName(),
+                firstPlayer.id().equals(playerId) ? firstPlayer.name() : secondPlayer.name(),
                 diceResult);
 
         engine.applyDiceRoll(playerDirection, diceResult);
@@ -71,10 +71,10 @@ public class DefaultGame implements Game {
     }
 
     private GameToPlayersMessage handleMove(String playerId, String opponentId, SelectMoveMessage selectMoveMessage) {
-        final var move = selectMoveMessage.getSelectedMove();
+        final var move = selectMoveMessage.selectedMove();
         final var playerDirection = directionByPlayerId.get(playerId);
         final List<GameToPlayerMessage> playerMessages =
-                engine.execute(playerDirection, move.getFrom(), move.getTo()).stream()
+                engine.execute(playerDirection, move.from(), move.to()).stream()
                         .map(GameMove::fromBgMove)
                         .map(NotifyMoveMessage::new)
                         .collect(Collectors.toCollection(ArrayList::new));
@@ -82,7 +82,7 @@ public class DefaultGame implements Game {
 
         if (engine.isGameComplete()) {
             final var endMessage = new NotifyGameEndedMessage(
-                    firstPlayer.getId().equals(playerId) ? firstPlayer.getName() : secondPlayer.getName());
+                    firstPlayer.id().equals(playerId) ? firstPlayer.name() : secondPlayer.name());
             playerMessages.add(endMessage);
             opponentMessages.add(endMessage);
         } else {
@@ -110,40 +110,6 @@ public class DefaultGame implements Game {
         return List.of(notification, new PromptMoveMessage(engine.getPossibleMoves()));
     }
 
-    private static final class PlayerInfo {
-        private final String id;
-        private final String name;
-        private final Direction direction;
-
-        public PlayerInfo(String id, String name, Direction direction) {
-            this.id = id;
-            this.name = name;
-            this.direction = direction;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Direction getDirection() {
-            return direction;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof PlayerInfo)) return false;
-            PlayerInfo that = (PlayerInfo) o;
-            return id.equals(that.id) && name.equals(that.name) && direction == that.direction;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, name, direction);
-        }
+    private record PlayerInfo(String id, String name, Direction direction) {
     }
 }

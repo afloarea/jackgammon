@@ -1,5 +1,6 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
 import io.vertx.core.AbstractVerticle;
@@ -21,16 +22,22 @@ public final class DispatcherVerticle extends AbstractVerticle {
         vertx.eventBus().consumer(Endpoints.HANDLE_INCOMING_MESSAGE, this::handleIncomingMessage);
 
         vertx.eventBus().consumer(Endpoints.REGISTER, (Message<RegistrationInfo> msg) ->
-                msg.body().getClientIds().forEach(clientId -> addressesByClientId.put(clientId, msg.body().getAddress())));
+                msg.body().clientIds().forEach(clientId -> addressesByClientId.put(clientId, msg.body().address())));
 
         vertx.eventBus().consumer(Endpoints.UNREGISTER, (Message<RegistrationInfo> msg) ->
-                msg.body().getClientIds().forEach(addressesByClientId::remove));
+                msg.body().clientIds().forEach(addressesByClientId::remove));
     }
 
     private void handleIncomingMessage(Message<ClientToServerEvent> msg) {
         if (msg.body() instanceof PlayerJoinMessage) {
             vertx.eventBus().send(
-                    Endpoints.HANDLE_PLAYER_JOIN, msg.body(), new DeliveryOptions().setHeaders(msg.headers()));
+                    Endpoints.HANDLE_PLAYER_CONNECTION, msg.body(), new DeliveryOptions().setHeaders(msg.headers()));
+            return;
+        }
+        if (msg.body() instanceof DisconnectMessage) {
+            final var address = addressesByClientId.getOrDefault(
+                    msg.headers().get(Headers.CLIENT_ID), Endpoints.HANDLE_PLAYER_CONNECTION);
+            vertx.eventBus().send(address, msg.body(), new DeliveryOptions().setHeaders(msg.headers()));
             return;
         }
 
