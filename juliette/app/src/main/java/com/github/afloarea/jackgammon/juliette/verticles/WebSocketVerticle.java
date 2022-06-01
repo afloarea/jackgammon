@@ -31,10 +31,9 @@ public final class WebSocketVerticle extends AbstractVerticle {
 
         vertx.eventBus().<ServerToClientEvent>consumer(Endpoints.SEND_TO_PLAYER).handler(this::handleOutgoing);
 
-        vertx.createHttpServer()
-                .webSocketHandler(this::handleIncoming)
+        httpServer = vertx.createHttpServer();
+        httpServer.webSocketHandler(this::handleIncoming)
                 .listen(port)
-                .onSuccess(startedServer -> httpServer = startedServer)
                 .<Void>mapEmpty()
                 .onComplete(startPromise);
     }
@@ -89,7 +88,7 @@ public final class WebSocketVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop(Promise<Void> stopPromise){
+    public void stop(Promise<Void> stopPromise) {
         LOG.info("Stopping WebSocketVerticle...");
         httpServer.close(stopPromise);
     }

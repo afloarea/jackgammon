@@ -19,13 +19,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class GameVerticle extends AbstractVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(GameVerticle.class);
+public final class MultiPlayerGameVerticle extends AbstractVerticle {
+    private static final Logger LOG = LoggerFactory.getLogger(MultiPlayerGameVerticle.class);
 
     private final Map<String, Player> playersById;
     private final Game game;
 
-    public GameVerticle(Player firstPlayer, Player secondPlayer) {
+    public MultiPlayerGameVerticle(Player firstPlayer, Player secondPlayer) {
         this.playersById = Stream.of(firstPlayer, secondPlayer)
                 .collect(Collectors.toMap(Player::getId, Function.identity()));
         this.game = Game.setUpGame(firstPlayer, secondPlayer);

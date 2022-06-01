@@ -59,7 +59,7 @@ public final class MatchMakingVerticle extends AbstractVerticle {
         final Player opponent = waitingPlayers.removeFirst();
 
         LOG.info("Creating new game (keyword {}) for players: {}, {}", keyword, playerName, opponent.getName());
-        vertx.deployVerticle(new GameVerticle(opponent, newPlayer));
+        vertx.deployVerticle(new MultiPlayerGameVerticle(opponent, newPlayer));
     }
 
     private void handleDisconnect(String playerId) {
