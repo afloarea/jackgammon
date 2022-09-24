@@ -20,7 +20,7 @@ public interface Game {
 
         final var playerNameById = Stream.of(player1, player2).collect(Collectors.toMap(Player::getId, Player::getName));
 
-        final var game = new DefaultGame(player1.getId(), player2.getId(), playerNameById);
+        final var game = new MultiplayerGame(player1.getId(), player2.getId(), playerNameById);
         player1.setGame(game);
         player2.setGame(game);
         return game;

@@ -15,20 +15,21 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class DefaultGame implements Game {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultGame.class);
+public final class MultiplayerGame implements Game {
+    private static final Logger LOG = LoggerFactory.getLogger(MultiplayerGame.class);
 
     private final Map<String, Direction> directionByPlayerId;
     private final InteractiveObgEngine engine;
     private final PlayerInfo firstPlayer;
     private final PlayerInfo secondPlayer;
 
-    DefaultGame(String firstPlayerId, String secondPlayerId, Map<String, String> playerNamesById) {
+    MultiplayerGame(String firstPlayerId, String secondPlayerId, Map<String, String> playerNamesById) {
         this.firstPlayer = new PlayerInfo(firstPlayerId, playerNamesById.get(firstPlayerId), Direction.CLOCKWISE);
-        this.secondPlayer = new PlayerInfo(secondPlayerId, playerNamesById.get(secondPlayerId), Direction.ANTICLOCKWISE);
+        this.secondPlayer = new PlayerInfo(secondPlayerId, playerNamesById.get(secondPlayerId),
+                Direction.ANTICLOCKWISE);
         this.directionByPlayerId = Map.of(firstPlayerId, Direction.CLOCKWISE, secondPlayerId, Direction.ANTICLOCKWISE);
 
-        engine = ObgEngines.newInteractive(BoardTemplate.getDefault());
+        engine = ObgEngines.create(InteractiveObgEngine.class, BoardTemplate.getDefault());
     }
 
     @Override
@@ -75,7 +76,12 @@ public final class DefaultGame implements Game {
         final var playerDirection = directionByPlayerId.get(playerId);
         final List<GameToPlayerMessage> playerMessages =
                 engine.execute(playerDirection, move.from(), move.to()).stream()
-                        .map(GameMove::fromBgMove)
+                        .<GameMove>mapMulti((transition, consumer) -> {
+                            if (transition.isSuspending()) {
+                                consumer.accept(GameMove.fromSuspendedPart(transition));
+                            }
+                            consumer.accept(GameMove.fromSimplePart(transition));
+                        })
                         .map(NotifyMoveMessage::new)
                         .collect(Collectors.toCollection(ArrayList::new));
         final List<GameToPlayerMessage> opponentMessages = new ArrayList<>(playerMessages);
