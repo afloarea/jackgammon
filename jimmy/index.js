@@ -20,9 +20,9 @@ displayPrompt().then(input => {
     },
     handleClose: function(e) {
       if (e.wasClean) {
-        console.log("clean close");
+        console.log(`clean close - ${e.code}: ${e.reason}`);
       } else {
-        console.log('messy close');
+        console.log(`messy close - ${e.code}: ${e.reason}`);
       }
     },
     handleError: function(error) {
