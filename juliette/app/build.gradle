@@ -19,7 +19,7 @@ repositories {
 }
 
 group 'com.github.afloarea'
-version = '0.2.2-SNAPSHOT'
+version = '0.2.2'
 
 sourceCompatibility = 17
 targetCompatibility = 17
