@@ -6,6 +6,7 @@ import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEve
 import com.github.afloarea.jackgammon.juliette.messages.server.ServerToClientEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
@@ -14,12 +15,15 @@ import io.vertx.core.json.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public final class WebSocketVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketVerticle.class);
+
+    private static final Duration PING_INTERVAL = Duration.ofSeconds(30);
 
     private HttpServer httpServer;
     private final Map<String, ServerWebSocket> webSocketByClientId = new HashMap<>();
@@ -36,6 +40,11 @@ public final class WebSocketVerticle extends AbstractVerticle {
                 .listen(port)
                 .<Void>mapEmpty()
                 .onComplete(startPromise);
+
+        // when behind a reverse proxy, the reverse proxy can reach its configured timeout
+        // and if there is no traffic, then it will simply sever the connection
+        vertx.setPeriodic(PING_INTERVAL.toMillis(), timerId ->
+                webSocketByClientId.values().forEach(webSocket -> webSocket.writePing(Buffer.buffer("ping"))));
     }
 
     private void handleOutgoing(Message<ServerToClientEvent> eventMsg) {
@@ -79,7 +88,7 @@ public final class WebSocketVerticle extends AbstractVerticle {
         webSocket.exceptionHandler(ex -> LOG.error("Exception on WebSocket", ex));
         webSocket.closeHandler(v -> LOG.info("WebSocket closed"));
         webSocket.endHandler(v -> {
-            LOG.info("WebSocket ended");
+            LOG.info("WebSocket for client {} ended", clientId);
             vertx.eventBus().send(
                     Endpoints.HANDLE_INCOMING_MESSAGE,
                     SimpleMessages.DISCONNECT_MESSAGE,

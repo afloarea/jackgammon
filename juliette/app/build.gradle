@@ -30,7 +30,7 @@ java {
 
 ext {
     vertxVersion = '4.3.3'
-    slf4jVersion = "2.0.1"
+    slf4jVersion = "1.7.36"
     junitVersion = "5.9.0"
     log4jVersion = "2.19.0"
 //    jacksonVersion = "2.13.3"
@@ -54,7 +54,8 @@ dependencies {
     // testing
     testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
     testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
-    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+    testImplementation "io.vertx:vertx-junit5"
+    testImplementation "io.vertx:vertx-web"
 }
 
 application {
