@@ -19,7 +19,7 @@ repositories {
 }
 
 group 'com.github.afloarea'
-version = '0.2.1'
+version = '0.2.2-SNAPSHOT'
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -29,17 +29,19 @@ java {
 }
 
 ext {
-    vertxVersion = '4.3.1'
+    vertxVersion = '4.3.3'
     slf4jVersion = "1.7.36"
-    junitVersion = "5.8.2"
-    log4jVersion = "2.17.2"
-    jacksonVersion = "2.13.3"
-    obgeVersion = "0.2.1"
+    junitVersion = "5.9.0"
+    log4jVersion = "2.19.0"
+//    jacksonVersion = "2.13.3"
+    obgeVersion = "0.3.2"
 }
 
 dependencies {
-    implementation "io.vertx:vertx-core:$vertxVersion"
-    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    implementation platform("io.vertx:vertx-stack-depchain:$vertxVersion") // bom versions catalog
+
+    implementation "io.vertx:vertx-core"
+    implementation "com.fasterxml.jackson.core:jackson-databind" // optional dependency of vertx
     implementation "com.github.afloarea:open-backgammon-engine:$obgeVersion"
 
     // logging
@@ -52,7 +54,8 @@ dependencies {
     // testing
     testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
     testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
-    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+    testImplementation "io.vertx:vertx-junit5"
+    testImplementation "io.vertx:vertx-web"
 }
 
 application {

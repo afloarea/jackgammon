@@ -6,7 +6,7 @@ import com.github.afloarea.obge.dice.DiceRoll;
 public record NotifyRollMessage(String playerName, int dice1, int dice2) implements GameToPlayerMessage {
 
     public NotifyRollMessage(String playerName, DiceRoll diceRoll) {
-        this(playerName, diceRoll.getDice1(), diceRoll.getDice2());
+        this(playerName, diceRoll.dice1(), diceRoll.dice2());
     }
 
 }

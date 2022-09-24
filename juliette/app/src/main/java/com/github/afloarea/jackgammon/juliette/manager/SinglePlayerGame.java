@@ -4,27 +4,30 @@ import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
 import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
 import com.github.afloarea.jackgammon.juliette.messages.server.*;
-import com.github.afloarea.jackgammon.juliette.neural.MoveSequenceConverter;
 import com.github.afloarea.jackgammon.juliette.neural.NeuralNetwork;
 import com.github.afloarea.jackgammon.juliette.neural.TdMapper;
 import com.github.afloarea.jackgammon.juliette.neural.TdNetwork;
 import com.github.afloarea.obge.Direction;
 import com.github.afloarea.obge.MixedModeObgEngine;
-import com.github.afloarea.obge.board.ObgBoard;
+import com.github.afloarea.obge.board.BoardSnapshot;
 import com.github.afloarea.obge.dice.DiceRoll;
 import com.github.afloarea.obge.factory.BoardTemplate;
 import com.github.afloarea.obge.factory.ObgEngines;
-import com.github.afloarea.obge.moves.ObgMove;
-import com.github.afloarea.obge.moves.ObgTransition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 public final class SinglePlayerGame implements Game {
     private static final Logger LOG = LoggerFactory.getLogger(SinglePlayerGame.class);
-    private static final Random RANDOM = new Random();
+    private static final RandomGenerator RAND = RandomGenerator.of("Random");
     private static final NeuralBrain NEURAL_BRAIN = new NeuralBrain(TdNetwork.importResource("/agents/neural1.json"));
 
     private final MixedModeObgEngine engine;
@@ -32,15 +35,11 @@ public final class SinglePlayerGame implements Game {
     private final PlayerInfo humanPlayer;
     private final PlayerInfo computerPlayer;
 
-    private final List<ObgMove> playerTurnMoves = new ArrayList<>();
-    private final ObgBoard computerBoard;
-
     public SinglePlayerGame(String humanPlayerId, String computerPlayerId, Map<String, String> playerNamesById) {
         this.humanPlayer = new PlayerInfo(humanPlayerId, playerNamesById.get(humanPlayerId), Direction.CLOCKWISE);
         this.computerPlayer = new PlayerInfo(computerPlayerId, playerNamesById.get(computerPlayerId), Direction.ANTICLOCKWISE);
 
-        engine = ObgEngines.newMixed(BoardTemplate.getDefault());
-        computerBoard = ObgBoard.createStartingBoard(BoardTemplate.getDefault());
+        this.engine = ObgEngines.create(MixedModeObgEngine.class, BoardTemplate.getDefault());
     }
 
     @Override
@@ -88,67 +87,69 @@ public final class SinglePlayerGame implements Game {
     }
 
     private Collection<GameToPlayerMessage> playComputerTurn() {
-        LOG.warn("PLAYER MOVES SO FAR: {}", playerTurnMoves);
+        final var notifications = new ArrayList<GameToPlayerMessage>();
 
-        // update board with player moves
-        final var playerSequence = MoveSequenceConverter.convertMovesToSequence(humanPlayer.direction(), playerTurnMoves);
-        LOG.warn("PLAYER SEQUENCE: {}", playerSequence);
-        computerBoard.doSequence(humanPlayer.direction(), playerSequence);
-        playerTurnMoves.clear();
+        // computer rolls the dice
+        final var diceResult = DiceRoll.generate();
+        notifications.add(new NotifyRollMessage(computerPlayer.name(), diceResult));
+        engine.applyDiceRoll(computerPlayer.direction(), diceResult);
 
-        final var playerMessages = new ArrayList<GameToPlayerMessage>();
-
-        // roll the dice
-        final var diceRoll = DiceRoll.generate();
-        playerMessages.add(new NotifyRollMessage(computerPlayer.name(), diceRoll));
-        engine.applyDiceRoll(computerPlayer.direction(), diceRoll);
-
-        // no possible moves
         if (engine.isCurrentTurnDone()) {
-            playerMessages.add(new PromptRollMessage());
-            return playerMessages;
+            // no possible moves with the roll result
+            notifications.add(new PromptRollMessage());
+            return notifications;
         }
 
-        final var possibleSequences = engine.getPossibleSequences();
-        final var selectedSequence = engine.selectSequence(computerPlayer.direction(), selectSequence(possibleSequences));
-        computerBoard.doSequence(computerPlayer.direction(), selectedSequence);
-        final var executedMoves = MoveSequenceConverter.convertSequenceToMoves(computerPlayer.direction(), selectedSequence);
+        // computer selects an outcome
+        final var boardOptions = engine.getBoardChoices();
+        final var selectedBoard = selectBoard(boardOptions);
 
-        executedMoves.stream()
+        // notify the player about the computers' selected outcome
+        final var transitions = engine.transitionTo(computerPlayer.direction(), selectedBoard);
+        transitions.stream()
+                .<GameMove>mapMulti(((transition, consumer) -> {
+                    if (transition.isSuspending()) {
+                        consumer.accept(GameMove.fromSuspendedPart(transition));
+                    }
+                    consumer.accept(GameMove.fromSimplePart(transition));
+                }))
                 .map(NotifyMoveMessage::new)
-                .forEach(playerMessages::add);
+                .forEach(notifications::add);
 
+        // either finish the game or let the human player continue
         if (engine.isGameComplete()) {
-            playerMessages.add(new NotifyGameEndedMessage(computerPlayer.name()));
+            notifications.add(new NotifyGameEndedMessage(computerPlayer.name()));
         } else {
-            playerMessages.add(new PromptRollMessage());
+            notifications.add(new PromptRollMessage());
         }
 
-        return playerMessages;
+        return Collections.unmodifiableList(notifications);
     }
 
-    private List<ObgTransition> selectSequence(Set<List<ObgTransition>> sequences) {
-        if (computerPlayer.name.equals("RandomComputer")) {
-            return new ArrayList<>(sequences).get(RANDOM.nextInt(sequences.size()));
+    private BoardSnapshot selectBoard(Set<BoardSnapshot> possibleBoards) {
+        if (computerPlayer.name().equals("RandomComputer")) {
+            return possibleBoards.stream().skip(RAND.nextInt(possibleBoards.size())).findFirst().orElseThrow();
         }
 
-        return NEURAL_BRAIN.selectSequence(computerPlayer.direction(), sequences, computerBoard);
+        return NEURAL_BRAIN.selectBoard(computerPlayer.direction(), possibleBoards);
     }
 
     private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
         final var move = selectMoveMessage.selectedMove();
         final var executedMoves = engine.execute(humanPlayer.direction(), move.from(), move.to());
 
-        playerTurnMoves.addAll(executedMoves);
-
         final List<GameToPlayerMessage> playerMessages = executedMoves.stream()
-                .map(GameMove::fromBgMove)
+                .<GameMove>mapMulti((transition, consumer) -> {
+                    if (transition.isSuspending()) {
+                        consumer.accept(GameMove.fromSuspendedPart(transition));
+                    }
+                    consumer.accept(GameMove.fromSimplePart(transition));
+                })
                 .map(NotifyMoveMessage::new)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (engine.isGameComplete()) {
-            final var endMessage = new NotifyGameEndedMessage(humanPlayer.name());
-            playerMessages.add(endMessage);
+            playerMessages.add(new NotifyGameEndedMessage(humanPlayer.name()));
         } else {
             playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
             if (engine.isCurrentTurnDone()) {
@@ -173,18 +174,19 @@ public final class SinglePlayerGame implements Game {
             this.network = network;
         }
 
-        public List<ObgTransition> selectSequence(Direction direction, Set<List<ObgTransition>> sequences, ObgBoard board) {
-            List<ObgTransition> selectedTransition = null;
-            var selectedScore = -1D;
-            for (var sequence : sequences) {
-                final var inputs = TdMapper.mapToNeuralInputs(direction, board);
-                final var score = network.compute(inputs);
+        public BoardSnapshot selectBoard(Direction direction, Set<BoardSnapshot> possibleBoards) {
+            BoardSnapshot selectedBoard = null;
+            double selectedScore = -1D;
+            for (var board : possibleBoards) {
+                final double[] inputs = TdMapper.mapToNeuralInputs(direction, board);
+                final double score = network.compute(inputs);
                 if (score > selectedScore) {
                     selectedScore = score;
-                    selectedTransition = sequence;
+                    selectedBoard = board;
                 }
             }
-            return selectedTransition;
+
+            return selectedBoard;
         }
     }
 }
