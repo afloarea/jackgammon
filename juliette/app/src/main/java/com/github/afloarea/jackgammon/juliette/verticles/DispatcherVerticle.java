@@ -1,8 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
-import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
@@ -29,12 +29,12 @@ public final class DispatcherVerticle extends AbstractVerticle {
     }
 
     private void handleIncomingMessage(Message<ClientToServerEvent> msg) {
-        if (msg.body() instanceof PlayerJoinMessage) {
+        if (msg.body() instanceof PlayerJoinEvent) {
             vertx.eventBus().send(
                     Endpoints.HANDLE_PLAYER_CONNECTION, msg.body(), new DeliveryOptions().setHeaders(msg.headers()));
             return;
         }
-        if (msg.body() instanceof DisconnectMessage) {
+        if (msg.body() instanceof DisconnectEvent) {
             final var address = addressesByClientId.getOrDefault(
                     msg.headers().get(Headers.CLIENT_ID), Endpoints.HANDLE_PLAYER_CONNECTION);
             vertx.eventBus().send(address, msg.body(), new DeliveryOptions().setHeaders(msg.headers()));

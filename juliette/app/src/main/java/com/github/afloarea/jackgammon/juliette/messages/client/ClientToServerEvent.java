@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "type"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PlayerJoinMessage.class, name = "join"),
-        @JsonSubTypes.Type(value = PlayerRollMessage.class, name = "roll"),
-        @JsonSubTypes.Type(value = SelectMoveMessage.class, name = "select-move")
+        @JsonSubTypes.Type(value = PlayerJoinEvent.class, name = "join"),
+        @JsonSubTypes.Type(value = PlayerRollEvent.class, name = "roll"),
+        @JsonSubTypes.Type(value = SelectMoveEvent.class, name = "select-move")
 })
 public interface ClientToServerEvent {
 }

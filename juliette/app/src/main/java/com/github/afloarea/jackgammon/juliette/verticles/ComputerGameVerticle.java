@@ -2,13 +2,13 @@ package com.github.afloarea.jackgammon.juliette.verticles;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
 import com.github.afloarea.jackgammon.juliette.manager.*;
-import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
-import com.github.afloarea.jackgammon.juliette.messages.SimpleMessages;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectEvent;
+import com.github.afloarea.jackgammon.juliette.messages.SimpleEvents;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
-import com.github.afloarea.jackgammon.juliette.messages.server.PromptMoveMessage;
-import com.github.afloarea.jackgammon.juliette.messages.server.PromptRollMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveEvent;
+import com.github.afloarea.jackgammon.juliette.messages.server.PromptMoveEvent;
+import com.github.afloarea.jackgammon.juliette.messages.server.PromptRollEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
@@ -36,9 +36,9 @@ public final class ComputerGameVerticle extends AbstractVerticle {
     @Override
     public void start() {
         vertx.eventBus().consumer(deploymentID(), (Message<ClientToServerEvent> msg) -> {
-            if (msg.body() instanceof PlayerToGameMessage playerMessage) {
+            if (msg.body() instanceof PlayerToGameEvent playerMessage) {
                 handlePlayerMessage(playerMessage);
-            } else if (msg.body() instanceof DisconnectMessage) {
+            } else if (msg.body() instanceof DisconnectEvent) {
                 handleDisconnect();
             }
         });
@@ -47,8 +47,8 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         sendMessagesToPlayers(game.init());
     }
 
-    private void handlePlayerMessage(PlayerToGameMessage msg) {
-        Optional<GameToPlayersMessage> result = Optional.of(player.executeMoveMessage(msg));
+    private void handlePlayerMessage(PlayerToGameEvent msg) {
+        Optional<GameToPlayersMessages> result = Optional.of(player.executeMoveMessage(msg));
         while (result.isPresent()) {
             sendMessagesToPlayers(result.get());
             if (game.isOver()) {
@@ -59,10 +59,10 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         }
     }
 
-    private Optional<GameToPlayersMessage> generateResponse(GameToPlayersMessage original) {
-        final Optional<GameToPlayerMessage> request = original.getMessagesForPlayer(computer.getId()).stream()
-                .filter(msg -> msg instanceof PromptRollMessage
-                        || msg instanceof PromptMoveMessage promptMsg && !promptMsg.getPossibleMoves().isEmpty())
+    private Optional<GameToPlayersMessages> generateResponse(GameToPlayersMessages original) {
+        final Optional<GameToPlayerEvent> request = original.getMessagesForPlayer(computer.getId()).stream()
+                .filter(msg -> msg instanceof PromptRollEvent
+                        || msg instanceof PromptMoveEvent promptMsg && !promptMsg.getPossibleMoves().isEmpty())
                 .findFirst();
 
         if (request.isEmpty()) {
@@ -70,15 +70,15 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         }
 
         final var message = request.get();
-        if (message instanceof PromptRollMessage) {
-            return Optional.of(computer.executeMoveMessage(new PlayerRollMessage()));
+        if (message instanceof PromptRollEvent) {
+            return Optional.of(computer.executeMoveMessage(new PlayerRollEvent()));
         } else {
-            final PromptMoveMessage moveRequest = (PromptMoveMessage) message;
+            final PromptMoveEvent moveRequest = (PromptMoveEvent) message;
             return Optional.of(computer.executeMoveMessage(generateMove(moveRequest)));
         }
     }
 
-    private PlayerToGameMessage generateMove(PromptMoveMessage moveRequest) {
+    private PlayerToGameEvent generateMove(PromptMoveEvent moveRequest) {
         final int selectedSource = RANDOM.nextInt(moveRequest.getPossibleMoves().size());
         final var entry = moveRequest.getPossibleMoves().entrySet().stream()
                 .skip(selectedSource)
@@ -89,10 +89,10 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         final String source = entry.getKey();
         final String target = entry.getValue().stream().skip(selectedTarget).limit(1).findFirst().orElseThrow();
 
-        return new SelectMoveMessage(new GameMove(source, target));
+        return new SelectMoveEvent(new GameMove(source, target));
     }
 
-    private void sendMessagesToPlayers(GameToPlayersMessage messages) {
+    private void sendMessagesToPlayers(GameToPlayersMessages messages) {
         final var deliveryOptions = new DeliveryOptions().addHeader(Headers.CLIENT_ID, player.getId());
         messages.getMessagesForPlayer(player.getId()).forEach(message ->
                 vertx.eventBus().send(Endpoints.SEND_TO_PLAYER, message, deliveryOptions));
@@ -107,7 +107,7 @@ public final class ComputerGameVerticle extends AbstractVerticle {
         LOG.info("Ending game with players: {}", player.getId());
         if (game.isOver()) {
             vertx.eventBus().send(Endpoints.SEND_TO_PLAYER,
-                    SimpleMessages.DISCONNECT_MESSAGE,
+                    SimpleEvents.DISCONNECT,
                     new DeliveryOptions().addHeader(Headers.CLIENT_ID, player.getId()));
         }
 

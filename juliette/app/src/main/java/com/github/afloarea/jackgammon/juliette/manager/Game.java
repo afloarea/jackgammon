@@ -8,9 +8,9 @@ import java.util.stream.Stream;
  */
 public interface Game {
 
-    GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message);
+    GameToPlayersMessages handle(String playerId, String opponentId, PlayerToGameEvent message);
 
-    GameToPlayersMessage init();
+    GameToPlayersMessages init();
 
     boolean isOver();
 

@@ -12,7 +12,7 @@ public final class Player {
         this.name = name;
     }
 
-    public GameToPlayersMessage executeMoveMessage(PlayerToGameMessage message) {
+    public GameToPlayersMessages executeMoveMessage(PlayerToGameEvent message) {
         return game.handle(id, opponent.id, message);
     }
 

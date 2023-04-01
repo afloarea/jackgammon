@@ -1,14 +1,14 @@
 package com.github.afloarea.jackgammon.juliette.messages.server;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerMessage;
+import com.github.afloarea.jackgammon.juliette.manager.GameToPlayerEvent;
 
-public record InitGameMessage(
+public record InitGameEvent(
         String playerName,
         String opponentName,
         @JsonRawValue String board,
         boolean startFirst)
-        implements GameToPlayerMessage {
+        implements GameToPlayerEvent {
 
     private static final String BOARD_PLAYER_VALUE = """
             [
@@ -27,16 +27,16 @@ public record InitGameMessage(
             ]
             """;
 
-    public InitGameMessage(String playerName, String opponentName, boolean firstPlayerStarts) {
+    public InitGameEvent(String playerName, String opponentName, boolean firstPlayerStarts) {
         this(playerName, opponentName, buildBoard(firstPlayerStarts), firstPlayerStarts);
     }
 
-    public static InitGameMessage buildFirstPlayerMessage(String playerName, String opponentName) {
-        return new InitGameMessage(playerName, opponentName, true);
+    public static InitGameEvent buildFirstPlayerMessage(String playerName, String opponentName) {
+        return new InitGameEvent(playerName, opponentName, true);
     }
 
-    public static InitGameMessage buildSecondPlayerMessage(String playerName, String opponentName) {
-        return new InitGameMessage(playerName, opponentName, false);
+    public static InitGameEvent buildSecondPlayerMessage(String playerName, String opponentName) {
+        return new InitGameEvent(playerName, opponentName, false);
     }
 
     private static String buildBoard(boolean firstPlayerStarts) {

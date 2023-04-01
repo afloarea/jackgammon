@@ -1,8 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.manager;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveEvent;
 import com.github.afloarea.jackgammon.juliette.messages.server.*;
 import com.github.afloarea.jackgammon.juliette.neural.NeuralNetwork;
 import com.github.afloarea.jackgammon.juliette.neural.TdMapper;
@@ -48,55 +48,55 @@ public final class SinglePlayerGame implements Game {
     }
 
     @Override
-    public GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message) {
-        if (message instanceof PlayerRollMessage) {
+    public GameToPlayersMessages handle(String playerId, String opponentId, PlayerToGameEvent message) {
+        if (message instanceof PlayerRollEvent) {
             return handleRoll();
         }
-        if (message instanceof SelectMoveMessage selectMoveMessage) {
+        if (message instanceof SelectMoveEvent selectMoveMessage) {
             return handleMove(selectMoveMessage);
         }
         throw new UnsupportedOperationException("Unable to handle message of type " + message.getClass().getSimpleName());
     }
 
     @Override
-    public GameToPlayersMessage init() {
-        return GameToPlayersMessage.of(
-                humanPlayer.id(), List.of(new InitGameMessage(
-                        humanPlayer.name(), computerPlayer.name(), true), new PromptRollMessage()),
-                computerPlayer.id(), List.of(new InitGameMessage(
+    public GameToPlayersMessages init() {
+        return GameToPlayersMessages.of(
+                humanPlayer.id(), List.of(new InitGameEvent(
+                        humanPlayer.name(), computerPlayer.name(), true), new PromptRollEvent()),
+                computerPlayer.id(), List.of(new InitGameEvent(
                         computerPlayer.name(), humanPlayer.name(), false)));
     }
 
-    private GameToPlayersMessage handleRoll() {
+    private GameToPlayersMessages handleRoll() {
         final var playerDirection = humanPlayer.direction();
         final var diceResult = DiceRoll.generate();
 
         engine.applyDiceRoll(playerDirection, diceResult);
 
-        final var notification = new NotifyRollMessage(humanPlayer.name(), diceResult);
-        final var playerMessages = new ArrayList<GameToPlayerMessage>();
+        final var notification = new NotifyRollEvent(humanPlayer.name(), diceResult);
+        final var playerMessages = new ArrayList<GameToPlayerEvent>();
         playerMessages.add(notification);
 
         if (engine.isCurrentTurnDone()) {
             playerMessages.addAll(playComputerTurn());
         } else {
-            playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
+            playerMessages.add(new PromptMoveEvent(engine.getPossibleMoves()));
         }
 
         return generatePlayerMessage(playerMessages);
     }
 
-    private Collection<GameToPlayerMessage> playComputerTurn() {
-        final var notifications = new ArrayList<GameToPlayerMessage>();
+    private Collection<GameToPlayerEvent> playComputerTurn() {
+        final var notifications = new ArrayList<GameToPlayerEvent>();
 
         // computer rolls the dice
         final var diceResult = DiceRoll.generate();
-        notifications.add(new NotifyRollMessage(computerPlayer.name(), diceResult));
+        notifications.add(new NotifyRollEvent(computerPlayer.name(), diceResult));
         engine.applyDiceRoll(computerPlayer.direction(), diceResult);
 
         if (engine.isCurrentTurnDone()) {
             // no possible moves with the roll result
-            notifications.add(new PromptRollMessage());
+            notifications.add(new PromptRollEvent());
             return notifications;
         }
 
@@ -113,14 +113,14 @@ public final class SinglePlayerGame implements Game {
                     }
                     consumer.accept(GameMove.fromSimplePart(transition));
                 }))
-                .map(NotifyMoveMessage::new)
+                .map(NotifyMoveEvent::new)
                 .forEach(notifications::add);
 
         // either finish the game or let the human player continue
         if (engine.isGameComplete()) {
-            notifications.add(new NotifyGameEndedMessage(computerPlayer.name()));
+            notifications.add(new NotifyGameEndedEvent(computerPlayer.name()));
         } else {
-            notifications.add(new PromptRollMessage());
+            notifications.add(new PromptRollEvent());
         }
 
         return Collections.unmodifiableList(notifications);
@@ -134,24 +134,24 @@ public final class SinglePlayerGame implements Game {
         return NEURAL_BRAIN.selectBoard(computerPlayer.direction(), possibleBoards);
     }
 
-    private GameToPlayersMessage handleMove(SelectMoveMessage selectMoveMessage) {
+    private GameToPlayersMessages handleMove(SelectMoveEvent selectMoveMessage) {
         final var move = selectMoveMessage.selectedMove();
         final var executedMoves = engine.execute(humanPlayer.direction(), move.from(), move.to());
 
-        final List<GameToPlayerMessage> playerMessages = executedMoves.stream()
+        final List<GameToPlayerEvent> playerMessages = executedMoves.stream()
                 .<GameMove>mapMulti((transition, consumer) -> {
                     if (transition.isSuspending()) {
                         consumer.accept(GameMove.fromSuspendedPart(transition));
                     }
                     consumer.accept(GameMove.fromSimplePart(transition));
                 })
-                .map(NotifyMoveMessage::new)
+                .map(NotifyMoveEvent::new)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (engine.isGameComplete()) {
-            playerMessages.add(new NotifyGameEndedMessage(humanPlayer.name()));
+            playerMessages.add(new NotifyGameEndedEvent(humanPlayer.name()));
         } else {
-            playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
+            playerMessages.add(new PromptMoveEvent(engine.getPossibleMoves()));
             if (engine.isCurrentTurnDone()) {
                 playerMessages.addAll(playComputerTurn());
             }
@@ -160,8 +160,8 @@ public final class SinglePlayerGame implements Game {
         return generatePlayerMessage(playerMessages);
     }
 
-    private GameToPlayersMessage generatePlayerMessage(Collection<GameToPlayerMessage> playerMessages) {
-        return GameToPlayersMessage.of(humanPlayer.id(), playerMessages, computerPlayer.id(), Collections.emptyList());
+    private GameToPlayersMessages generatePlayerMessage(Collection<GameToPlayerEvent> playerMessages) {
+        return GameToPlayersMessages.of(humanPlayer.id(), playerMessages, computerPlayer.id(), Collections.emptyList());
     }
 
     private record PlayerInfo(String id, String name, Direction direction) {

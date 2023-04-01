@@ -1,7 +1,7 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
-import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
-import com.github.afloarea.jackgammon.juliette.messages.SimpleMessages;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectEvent;
+import com.github.afloarea.jackgammon.juliette.messages.SimpleEvents;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
 import com.github.afloarea.jackgammon.juliette.messages.server.ServerToClientEvent;
 import io.vertx.core.AbstractVerticle;
@@ -48,7 +48,7 @@ public final class WebSocketVerticle extends AbstractVerticle {
     }
 
     private void handleOutgoing(Message<ServerToClientEvent> eventMsg) {
-        if (eventMsg.body() instanceof DisconnectMessage) {
+        if (eventMsg.body() instanceof DisconnectEvent) {
             handlePlayerDisconnect(eventMsg);
             return;
         }
@@ -69,8 +69,7 @@ public final class WebSocketVerticle extends AbstractVerticle {
 
     private void handlePlayerDisconnect(Message<?> msg) {
         final var clientId = msg.headers().get(Headers.CLIENT_ID);
-        LOG.info("Disconnecting client {}", clientId);
-        final var webSocket = webSocketByClientId.remove(clientId);
+        final var webSocket = webSocketByClientId.get(clientId);
         webSocket.close().onComplete(ar ->
                 LOG.info("Disconnecting {} succeeded: {}", clientId, ar.succeeded()));
     }
@@ -86,12 +85,12 @@ public final class WebSocketVerticle extends AbstractVerticle {
                 new DeliveryOptions().addHeader(Headers.CLIENT_ID, clientId)));
 
         webSocket.exceptionHandler(ex -> LOG.error("Exception on WebSocket", ex));
-        webSocket.closeHandler(v -> LOG.info("WebSocket closed"));
-        webSocket.endHandler(v -> {
-            LOG.info("WebSocket for client {} ended", clientId);
+        webSocket.closeHandler(v -> {
+            LOG.info("WebSocket closed for client {}", clientId);
+            webSocketByClientId.remove(clientId);
             vertx.eventBus().send(
                     Endpoints.HANDLE_INCOMING_MESSAGE,
-                    SimpleMessages.DISCONNECT_MESSAGE,
+                    SimpleEvents.DISCONNECT,
                     new DeliveryOptions().addHeader(Headers.CLIENT_ID, clientId));
         });
     }

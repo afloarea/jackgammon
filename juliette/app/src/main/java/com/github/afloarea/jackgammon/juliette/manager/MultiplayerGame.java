@@ -1,8 +1,8 @@
 package com.github.afloarea.jackgammon.juliette.manager;
 
 import com.github.afloarea.jackgammon.juliette.GameMove;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollMessage;
-import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerRollEvent;
+import com.github.afloarea.jackgammon.juliette.messages.client.SelectMoveEvent;
 import com.github.afloarea.jackgammon.juliette.messages.server.*;
 import com.github.afloarea.obge.Direction;
 import com.github.afloarea.obge.InteractiveObgEngine;
@@ -38,43 +38,43 @@ public final class MultiplayerGame implements Game {
     }
 
     @Override
-    public GameToPlayersMessage handle(String playerId, String opponentId, PlayerToGameMessage message) {
-        if (message instanceof PlayerRollMessage rollMessage) {
+    public GameToPlayersMessages handle(String playerId, String opponentId, PlayerToGameEvent message) {
+        if (message instanceof PlayerRollEvent rollMessage) {
             return handleRoll(playerId, opponentId, rollMessage);
         }
-        if (message instanceof SelectMoveMessage selectMessage) {
+        if (message instanceof SelectMoveEvent selectMessage) {
             return handleMove(playerId, opponentId, selectMessage);
         }
         throw new UnsupportedOperationException("Unable to handle message of type " + message.getClass().getSimpleName());
     }
 
     @Override
-    public GameToPlayersMessage init() {
-        return GameToPlayersMessage.of(
-                firstPlayer.id(), List.of(new InitGameMessage(
-                        firstPlayer.name(), secondPlayer.name(), true), new PromptRollMessage()),
-                secondPlayer.id(), List.of(new InitGameMessage(
+    public GameToPlayersMessages init() {
+        return GameToPlayersMessages.of(
+                firstPlayer.id(), List.of(new InitGameEvent(
+                        firstPlayer.name(), secondPlayer.name(), true), new PromptRollEvent()),
+                secondPlayer.id(), List.of(new InitGameEvent(
                         secondPlayer.name(), firstPlayer.name(), false)));
     }
 
-    private GameToPlayersMessage handleRoll(String playerId, String opponentId, PlayerRollMessage rollMessage) {
+    private GameToPlayersMessages handleRoll(String playerId, String opponentId, PlayerRollEvent rollMessage) {
         final var playerDirection = directionByPlayerId.get(playerId);
         final var diceResult = DiceRoll.generate();
-        final var notification = new NotifyRollMessage(
+        final var notification = new NotifyRollEvent(
                 firstPlayer.id().equals(playerId) ? firstPlayer.name() : secondPlayer.name(),
                 diceResult);
 
         engine.applyDiceRoll(playerDirection, diceResult);
 
-        return GameToPlayersMessage.of(
+        return GameToPlayersMessages.of(
                 playerId, generateCurrentPlayerMessages(notification),
                 opponentId, generateOpponentMessages(notification));
     }
 
-    private GameToPlayersMessage handleMove(String playerId, String opponentId, SelectMoveMessage selectMoveMessage) {
+    private GameToPlayersMessages handleMove(String playerId, String opponentId, SelectMoveEvent selectMoveMessage) {
         final var move = selectMoveMessage.selectedMove();
         final var playerDirection = directionByPlayerId.get(playerId);
-        final List<GameToPlayerMessage> playerMessages =
+        final List<GameToPlayerEvent> playerMessages =
                 engine.execute(playerDirection, move.from(), move.to()).stream()
                         .<GameMove>mapMulti((transition, consumer) -> {
                             if (transition.isSuspending()) {
@@ -82,38 +82,38 @@ public final class MultiplayerGame implements Game {
                             }
                             consumer.accept(GameMove.fromSimplePart(transition));
                         })
-                        .map(NotifyMoveMessage::new)
+                        .map(NotifyMoveEvent::new)
                         .collect(Collectors.toCollection(ArrayList::new));
-        final List<GameToPlayerMessage> opponentMessages = new ArrayList<>(playerMessages);
+        final List<GameToPlayerEvent> opponentMessages = new ArrayList<>(playerMessages);
 
         if (engine.isGameComplete()) {
-            final var endMessage = new NotifyGameEndedMessage(
+            final var endMessage = new NotifyGameEndedEvent(
                     firstPlayer.id().equals(playerId) ? firstPlayer.name() : secondPlayer.name());
             playerMessages.add(endMessage);
             opponentMessages.add(endMessage);
         } else {
-            playerMessages.add(new PromptMoveMessage(engine.getPossibleMoves()));
+            playerMessages.add(new PromptMoveEvent(engine.getPossibleMoves()));
             if (engine.isCurrentTurnDone()) {
-                opponentMessages.add(new PromptRollMessage());
+                opponentMessages.add(new PromptRollEvent());
             }
         }
 
-        return GameToPlayersMessage.of(
+        return GameToPlayersMessages.of(
                 playerId, Collections.unmodifiableList(playerMessages),
                 opponentId, Collections.unmodifiableList(opponentMessages));
     }
 
-    private List<GameToPlayerMessage> generateOpponentMessages(GameToPlayerMessage notification) {
-        final var opponentMessages = new ArrayList<GameToPlayerMessage>();
+    private List<GameToPlayerEvent> generateOpponentMessages(GameToPlayerEvent notification) {
+        final var opponentMessages = new ArrayList<GameToPlayerEvent>();
         opponentMessages.add(notification);
         if (engine.isCurrentTurnDone()) {
-            opponentMessages.add(new PromptRollMessage());
+            opponentMessages.add(new PromptRollEvent());
         }
         return Collections.unmodifiableList(opponentMessages);
     }
 
-    private List<GameToPlayerMessage> generateCurrentPlayerMessages(GameToPlayerMessage notification) {
-        return List.of(notification, new PromptMoveMessage(engine.getPossibleMoves()));
+    private List<GameToPlayerEvent> generateCurrentPlayerMessages(GameToPlayerEvent notification) {
+        return List.of(notification, new PromptMoveEvent(engine.getPossibleMoves()));
     }
 
     private record PlayerInfo(String id, String name, Direction direction) {

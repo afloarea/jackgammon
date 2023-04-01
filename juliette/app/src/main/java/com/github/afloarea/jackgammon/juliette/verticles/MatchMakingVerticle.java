@@ -1,9 +1,9 @@
 package com.github.afloarea.jackgammon.juliette.verticles;
 
 import com.github.afloarea.jackgammon.juliette.manager.Player;
-import com.github.afloarea.jackgammon.juliette.messages.DisconnectMessage;
+import com.github.afloarea.jackgammon.juliette.messages.DisconnectEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
-import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinMessage;
+import com.github.afloarea.jackgammon.juliette.messages.client.PlayerJoinEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
 import org.slf4j.Logger;
@@ -26,23 +26,23 @@ public final class MatchMakingVerticle extends AbstractVerticle {
 
     private void handleConnection(Message<ClientToServerEvent> clientMsg) {
         final String clientId = clientMsg.headers().get(Headers.CLIENT_ID);
-        if (clientMsg.body() instanceof PlayerJoinMessage joinMessage) {
+        if (clientMsg.body() instanceof PlayerJoinEvent joinMessage) {
             handleJoin(clientId, joinMessage);
             return;
         }
-        if (clientMsg.body() instanceof DisconnectMessage) {
+        if (clientMsg.body() instanceof DisconnectEvent) {
             handleDisconnect(clientId);
         }
 
         //FIXME
     }
 
-    private void handleJoin(String playerId, PlayerJoinMessage msgBody) {
+    private void handleJoin(String playerId, PlayerJoinEvent msgBody) {
         final String playerName = msgBody.playerName();
         final Player newPlayer = new Player(playerId, playerName);
 
         final var mode = msgBody.mode();
-        if (mode == PlayerJoinMessage.Mode.RANDOM || mode == PlayerJoinMessage.Mode.NEURAL) {
+        if (mode == PlayerJoinEvent.Mode.RANDOM || mode == PlayerJoinEvent.Mode.NEURAL) {
             LOG.info("Creating new single player game for player: {}", playerName);
             vertx.deployVerticle(new SinglePlayerGameVerticle(newPlayer, mode));
             return;

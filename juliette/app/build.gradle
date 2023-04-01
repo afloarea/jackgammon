@@ -29,11 +29,10 @@ java {
 }
 
 ext {
-    vertxVersion = '4.3.3'
-    slf4jVersion = "1.7.36"
+    vertxVersion = '4.4.1'
     junitVersion = "5.9.0"
-    log4jVersion = "2.19.0"
-//    jacksonVersion = "2.13.3"
+    log4jVersion = "2.20.0"
+//    jacksonVersion = "2.13.4"
     obgeVersion = "0.3.2"
 }
 
@@ -45,11 +44,9 @@ dependencies {
     implementation "com.github.afloarea:open-backgammon-engine:$obgeVersion"
 
     // logging
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
     //        implementation "ch.qos.logback:logback-classic:$logbackVersion"
-    implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
-    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
-    implementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+//    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion"
 
     // testing
     testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"

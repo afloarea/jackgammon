@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "type"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = InitGameMessage.class, name = "game-init"),
-        @JsonSubTypes.Type(value = PromptRollMessage.class, name = "prompt-roll"),
-        @JsonSubTypes.Type(value = PromptMoveMessage.class, name = "prompt-move"),
-        @JsonSubTypes.Type(value = NotifyRollMessage.class, name = "notify-roll"),
-        @JsonSubTypes.Type(value = NotifyGameEndedMessage.class, name = "notify-end"),
-        @JsonSubTypes.Type(value = NotifyMoveMessage.class, name = "notify-move")
+        @JsonSubTypes.Type(value = InitGameEvent.class, name = "game-init"),
+        @JsonSubTypes.Type(value = PromptRollEvent.class, name = "prompt-roll"),
+        @JsonSubTypes.Type(value = PromptMoveEvent.class, name = "prompt-move"),
+        @JsonSubTypes.Type(value = NotifyRollEvent.class, name = "notify-roll"),
+        @JsonSubTypes.Type(value = NotifyGameEndedEvent.class, name = "notify-end"),
+        @JsonSubTypes.Type(value = NotifyMoveEvent.class, name = "notify-move")
 })
 public interface ServerToClientEvent {
 }

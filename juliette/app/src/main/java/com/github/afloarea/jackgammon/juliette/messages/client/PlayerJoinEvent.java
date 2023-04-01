@@ -2,7 +2,7 @@ package com.github.afloarea.jackgammon.juliette.messages.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record PlayerJoinMessage(String playerName, Options options) implements ClientToServerEvent {
+public record PlayerJoinEvent(String playerName, Options options) implements ClientToServerEvent {
 
     public String keyword() {
         return options.keyword;
