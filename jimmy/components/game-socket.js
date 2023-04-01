@@ -26,7 +26,11 @@ export function createWebSocket(config) {
             case 'notify-end':
             config.handleNotifyGameOver(msg, socket);
             break;
+            case 'display-chat-message':
+            config.handleDisplayChatEvent(msg, socket);
+            break;
             default:
+            console.log(`Unhandled message ${msg}`)
             break;
         }
     };

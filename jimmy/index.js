@@ -8,7 +8,13 @@ const BACKEND = `ws://${window.location.hostname}:8080/play`;
 const diceButton = document.getElementById('roll');
 diceButton.disabled = true;
 
+const chatInput = document.getElementById('chat-input');
+const chatButton = document.getElementById('chat-button');
+chatButton.disabled = true;
+
 const board = new Board();
+
+let playerName;
 
 displayPrompt().then(input => {
   
@@ -34,7 +40,8 @@ displayPrompt().then(input => {
     handleRollNotification: updateRoll,
     handleMovePrompt: selectMove,
     handleMoveNotification: (ev) => board.displayMove(ev),
-    handleNotifyGameOver: displayGameOver
+    handleNotifyGameOver: displayGameOver,
+    handleDisplayChatEvent
   };
 
   const socket = createWebSocket(socketConfig);
@@ -43,6 +50,15 @@ displayPrompt().then(input => {
     socket.send('{ "type": "roll" }');
     diceButton.disabled = true;
   });
+
+  chatButton.addEventListener('click', () => sendChatText(socket));
+  chatButton.disabled = false;
+  playerName = input.name;
+  chatInput.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') {
+      sendChatText(socket);
+    }
+  })
 });
 
 function sendJoinMessage(input, socket) {
@@ -99,4 +115,19 @@ function updateRoll(msg) {
 
 function handleRollPrompt() {
   diceButton.disabled = false;
+}
+
+function handleDisplayChatEvent(event) {
+  const textArea = document.querySelector('textarea');
+  textArea.value += `${event.author}: ${event.message}\n`
+  textArea.scrollTop = textArea.scrollHeight;
+}
+
+function sendChatText(socket) {
+  const message = chatInput.value?.trim();
+  if (!message) {
+    return;
+  }
+  socket.send(JSON.stringify({ type: 'chat-message', author: playerName, message }));
+  chatInput.value = null;
 }
