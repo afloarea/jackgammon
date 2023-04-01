@@ -5,4 +5,5 @@ open module com.github.afloarea.jackgammon.juliette {
     requires io.vertx.core;
     requires com.fasterxml.jackson.databind;
     requires com.github.afloarea.obge;
+//    requires encoder;
 }

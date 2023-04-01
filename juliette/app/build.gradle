@@ -25,7 +25,7 @@ sourceCompatibility = 17
 targetCompatibility = 17
 
 java {
-    modularity.inferModulePath = true
+//    modularity.inferModulePath = true
 }
 
 ext {
@@ -34,6 +34,7 @@ ext {
     log4jVersion = "2.20.0"
 //    jacksonVersion = "2.13.4"
     obgeVersion = "0.3.2"
+    owaspEncoderVersion = '1.2.3'
 }
 
 dependencies {
@@ -42,6 +43,7 @@ dependencies {
     implementation "io.vertx:vertx-core"
     implementation "com.fasterxml.jackson.core:jackson-databind" // optional dependency of vertx
     implementation "com.github.afloarea:open-backgammon-engine:$obgeVersion"
+    implementation "org.owasp.encoder:encoder:$owaspEncoderVersion"
 
     // logging
     //        implementation "ch.qos.logback:logback-classic:$logbackVersion"

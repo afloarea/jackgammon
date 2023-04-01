@@ -4,7 +4,9 @@ import com.github.afloarea.jackgammon.juliette.manager.GameToPlayersMessages;
 import com.github.afloarea.jackgammon.juliette.manager.PlayerToGameEvent;
 import com.github.afloarea.jackgammon.juliette.messages.DisconnectEvent;
 import com.github.afloarea.jackgammon.juliette.messages.SimpleEvents;
+import com.github.afloarea.jackgammon.juliette.messages.client.ChatMessageEvent;
 import com.github.afloarea.jackgammon.juliette.messages.client.ClientToServerEvent;
+import com.github.afloarea.jackgammon.juliette.messages.server.DisplayChatMessageEvent;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import org.slf4j.Logger;
@@ -33,10 +35,22 @@ public abstract class AbstractGameVerticle extends AbstractVerticle {
                 handleDisconnect(playerId);
                 return;
             }
+            if (msg.body() instanceof ChatMessageEvent chatMessageEvent) {
+                handleChatMessage(chatMessageEvent);
+                return;
+            }
             LOG.warn("Unexpected message: {}", msg.body());
         });
 
         vertx.eventBus().send(Endpoints.REGISTER, new RegistrationInfo(deploymentID(), playerIds()));
+    }
+
+    private void handleChatMessage(ChatMessageEvent event) {
+        final var displayMessageEvent = new DisplayChatMessageEvent(event.author(), event.message());
+        playerIds().stream()
+                .map(id -> new DeliveryOptions().addHeader(Headers.CLIENT_ID, id))
+                .forEach(deliveryOptions ->
+                        vertx.eventBus().send(Endpoints.SEND_TO_PLAYER, displayMessageEvent, deliveryOptions));
     }
 
     protected final void sendMessagesToPlayers(GameToPlayersMessages messages) {

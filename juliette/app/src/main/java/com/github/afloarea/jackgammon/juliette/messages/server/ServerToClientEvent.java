@@ -13,7 +13,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = PromptMoveEvent.class, name = "prompt-move"),
         @JsonSubTypes.Type(value = NotifyRollEvent.class, name = "notify-roll"),
         @JsonSubTypes.Type(value = NotifyGameEndedEvent.class, name = "notify-end"),
-        @JsonSubTypes.Type(value = NotifyMoveEvent.class, name = "notify-move")
+        @JsonSubTypes.Type(value = NotifyMoveEvent.class, name = "notify-move"),
+
+        @JsonSubTypes.Type(value = DisplayChatMessageEvent.class, name = "display-chat-message")
 })
 public interface ServerToClientEvent {
 }
