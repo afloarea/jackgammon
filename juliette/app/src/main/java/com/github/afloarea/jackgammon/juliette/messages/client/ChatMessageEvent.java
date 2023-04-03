@@ -1,11 +1,11 @@
 package com.github.afloarea.jackgammon.juliette.messages.client;
 
-//import org.owasp.encoder.Encode;
+import com.github.afloarea.jackgammon.juliette.utils.EncodingUtils;
 
 public record ChatMessageEvent(String author, String message) implements ClientToServerEvent {
 
-//    public ChatMessageEvent {
-//        author = Encode.forHtmlContent(author);
-//        message = Encode.forHtmlContent(message);
-//    }
+    public ChatMessageEvent {
+        author = EncodingUtils.encodeHtmlContent(author);
+        message = EncodingUtils.encodeHtmlContent(message);
+    }
 }

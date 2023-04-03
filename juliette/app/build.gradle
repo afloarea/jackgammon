@@ -43,7 +43,7 @@ dependencies {
     implementation "io.vertx:vertx-core"
     implementation "com.fasterxml.jackson.core:jackson-databind" // optional dependency of vertx
     implementation "com.github.afloarea:open-backgammon-engine:$obgeVersion"
-    implementation "org.owasp.encoder:encoder:$owaspEncoderVersion"
+//    implementation "org.owasp.encoder:encoder:$owaspEncoderVersion"
 
     // logging
     //        implementation "ch.qos.logback:logback-classic:$logbackVersion"
