@@ -1,10 +1,10 @@
-FROM registry.hub.docker.com/library/gradle:jdk17 AS builder
+FROM docker.io/gradle:jdk17 AS builder
 
 COPY --chown=gradle:gradle . /home/gradle/app
 WORKDIR /home/gradle/app
 RUN gradle test distTar
 
-FROM registry.hub.docker.com/library/eclipse-temurin:17-jre-alpine
+FROM docker.io/eclipse-temurin:17-jre-alpine
 RUN mkdir /opt/app/
 COPY --from=builder /home/gradle/app/build/distributions/app*.tar /opt/app/
 
